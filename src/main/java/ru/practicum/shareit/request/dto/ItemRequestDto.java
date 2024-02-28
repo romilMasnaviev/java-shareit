@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  */
 @Data
 public class ItemRequestDto {
+    LocalDateTime created;
     private String id;
     private String description;
-    LocalDateTime created;
 }

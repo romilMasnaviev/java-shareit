@@ -24,4 +24,11 @@ public class Errorhandler {
         return new ErrorResponse((exception.getMessage()));
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(final NotFoundException exception) {
+        log.error("Ошибка поиска. {}", exception.getMessage());
+        return new ErrorResponse((exception.getMessage()));
+    }
+
 }

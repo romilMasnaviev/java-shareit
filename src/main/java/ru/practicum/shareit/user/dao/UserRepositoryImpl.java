@@ -20,19 +20,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User add(User user) {
-        users.put(id, user);
         user.setId(id);
+        users.put(id, user);
         return users.get(id++);
     }
 
     @Override
     public User update(User user, Long userId) {
-        if (user.getName() != null) {
-            users.get(userId).setName(user.getName());
-        }
-        if (user.getEmail() != null) {
-            users.get(userId).setEmail(user.getEmail());
-        }
+        if (user.getName() != null) users.get(userId).setName(user.getName());
+        if (user.getEmail() != null) users.get(userId).setEmail(user.getEmail());
         return users.get(userId);
     }
 

@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void validEmail(String email){
+    private void validEmail(String email) {
         if (email == null || email.indexOf('@') == -1) {
             throw new ValidationException("Некорректная почта пользователя");
         }
