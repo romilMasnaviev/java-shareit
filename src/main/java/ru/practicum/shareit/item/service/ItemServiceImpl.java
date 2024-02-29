@@ -41,6 +41,7 @@ public class ItemServiceImpl implements ItemService {
         log.info("Обновление вещи {} с id владельца {}", request, ownerId);
         Item item = converter.convert(request);
         checkOwnerId(ownerId);
+        checkItemExist(itemId);
         checkItsItemOwner(ownerId, itemId);
         item.setOwner(userRepository.get(ownerId));
         return itemRepository.update(item, itemId);

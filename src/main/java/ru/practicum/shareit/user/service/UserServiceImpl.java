@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.handler.ConflictException;
+import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
@@ -82,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
     private void idExist(Long id) {
         if (repository.getAll().stream().noneMatch(user -> id.equals(user.getId()))) {
-            throw new ValidationException("Пользователя с таким id не существует");
+            throw new NotFoundException("Пользователя с таким id не существует");
         }
     }
 

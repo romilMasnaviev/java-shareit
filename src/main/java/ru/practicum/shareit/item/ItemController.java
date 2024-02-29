@@ -15,16 +15,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
 
+    private static final String xSharerUserId = "X-Sharer-User-Id";
+
     private final ItemService service;
     private final ItemConverter converter;
 
     @PostMapping()
-    ItemResponse create(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody ItemCreateRequest request) {
+    ItemResponse create(@RequestHeader(xSharerUserId) Long ownerId, @RequestBody ItemCreateRequest request) {
         return converter.convert(service.create(request, ownerId));
     }
 
     @PatchMapping("/{itemId}")
-    ItemResponse update(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody ItemUpdateRequest request, @PathVariable Long itemId) {
+    ItemResponse update(@RequestHeader(xSharerUserId) Long ownerId, @RequestBody ItemUpdateRequest request, @PathVariable Long itemId) {
         return converter.convert(service.update(request, ownerId, itemId));
     }
 
@@ -34,7 +36,7 @@ public class ItemController {
     }
 
     @GetMapping()
-    List<ItemResponse> getAll(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long ownerId) {
         return converter.convert(service.getAll(ownerId));
     }
 
