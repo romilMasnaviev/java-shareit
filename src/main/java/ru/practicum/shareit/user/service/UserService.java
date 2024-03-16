@@ -4,11 +4,11 @@ import ru.practicum.shareit.user.dto.UserCreateRequest;
 import ru.practicum.shareit.user.dto.UserUpdateRequest;
 import ru.practicum.shareit.user.model.User;
 
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
-    User create(UserCreateRequest request);
+    User create(@Valid UserCreateRequest request);
 
     User get(Long id);
 

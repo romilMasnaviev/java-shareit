@@ -4,10 +4,11 @@ import ru.practicum.shareit.item.dto.ItemCreateRequest;
 import ru.practicum.shareit.item.dto.ItemUpdateRequest;
 import ru.practicum.shareit.item.model.Item;
 
+import javax.validation.Valid;
 import java.util.List;
 
 public interface ItemService {
-    Item create(ItemCreateRequest request, Long ownerId);
+    Item create(@Valid ItemCreateRequest request, Long ownerId);
 
     Item update(ItemUpdateRequest request, Long ownerId, Long itemId);
 

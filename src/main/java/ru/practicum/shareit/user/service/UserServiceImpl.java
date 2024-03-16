@@ -4,25 +4,28 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.user.dao.JpaUserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
 import ru.practicum.shareit.user.dto.UserCreateRequest;
 import ru.practicum.shareit.user.dto.UserUpdateRequest;
 import ru.practicum.shareit.user.model.User;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
+@Validated
 public class UserServiceImpl implements UserService {
 
     private final JpaUserRepository repository;
     private final UserConverter converter;
 
     @Override
-    public User create(UserCreateRequest request) {
+    public User create(@Valid UserCreateRequest request) {
         log.info("Создание пользователя {}", request);
         User user = converter.convert(request);
         return repository.save(user);

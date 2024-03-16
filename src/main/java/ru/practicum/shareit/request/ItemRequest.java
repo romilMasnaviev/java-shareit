@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "requests")
 public class ItemRequest {
+    LocalDateTime created;
     @Id
     private Long id;
-    LocalDateTime created;
     private String description;
 }

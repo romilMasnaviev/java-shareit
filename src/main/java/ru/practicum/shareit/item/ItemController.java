@@ -26,7 +26,9 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    ItemResponse update(@RequestHeader(xSharerUserId) Long ownerId, @RequestBody ItemUpdateRequest request, @PathVariable Long itemId) {
+    ItemResponse update(@RequestHeader(xSharerUserId) Long ownerId,
+                        @RequestBody ItemUpdateRequest request,
+                        @PathVariable Long itemId) {
         return converter.convert(service.update(request, ownerId, itemId));
     }
 

@@ -14,7 +14,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    @NotNull(message = "не должно быть пустым")
     @Email
+    @NotNull
     private String email;
 }
