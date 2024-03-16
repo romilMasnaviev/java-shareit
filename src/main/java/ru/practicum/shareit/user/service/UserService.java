@@ -5,6 +5,7 @@ import ru.practicum.shareit.user.dto.UserUpdateRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
     User create(UserCreateRequest request);

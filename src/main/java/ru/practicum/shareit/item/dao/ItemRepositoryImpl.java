@@ -33,7 +33,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         if (item.getDescription() != null) itemToUpdate.setDescription(item.getDescription());
         if (item.getAvailable() != null) itemToUpdate.setAvailable(item.getAvailable());
         if (item.getOwner() != null) itemToUpdate.setOwner(item.getOwner());
-        if (item.getRequest() != null) itemToUpdate.setRequest(item.getRequest());
+        //if (item.getRequest() != null) itemToUpdate.setRequest(item.getRequest());
         return items.get(itemId);
     }
 
