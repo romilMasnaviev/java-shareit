@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @Mapper(componentModel = "spring")
-public class BookingApproveResponse {
+public class BookingResponse {
     Long id;
     Item item;
     User booker;

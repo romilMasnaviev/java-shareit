@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ServerErrorException;
 import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
-import ru.practicum.shareit.booking.dto.BookingApproveResponse;
-import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.State;
+import ru.practicum.shareit.handler.InternalServerException;
+import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
 import ru.practicum.shareit.item.dao.JpaItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -16,6 +18,7 @@ import ru.practicum.shareit.user.dao.JpaUserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -27,7 +30,6 @@ public class BookingServiceImpl implements BookingService {
     private final JpaBookingRepository bookingRepository;
     private final JpaItemRepository itemRepository;
     private final JpaUserRepository userRepository;
-    private final BookingConverter converter;
 
     @Override
     public Booking create(Booking booking, Long itemId, Long userId) {
@@ -43,16 +45,75 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingApproveResponse approve(Long bookingId, Long userId, Boolean isApproved) {
-        log.info("approve bookingId = {}, userId = {}, isApproved = {}", bookingId,userId,isApproved);
+    public Booking approve(Long bookingId, Long userId, Boolean isApproved) {
+        log.info("approve bookingId = {}, userId = {}, isApproved = {}", bookingId, userId, isApproved);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(NoSuchElementException::new);
         checkItsOwner(booking, userId);
         if (isApproved) {
+            if (booking.getStatus().equals(Status.APPROVED)){
+                throw new ValidationException("Status can not be changed after approved");
+            }
             booking.setStatus(Status.APPROVED);
         } else {
             booking.setStatus(Status.REJECTED);
         }
-        return converter.convert(bookingRepository.save(booking));
+        return bookingRepository.save(booking);
+    }
+
+    @Override
+    public Booking get(Long bookingId, Long userId) {
+        log.info("get booking, bookingId = {}, userId = {}", bookingId, userId);
+        checkBookingExists(bookingId);
+        checkUserExists(userId);
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(javax.validation.ValidationException::new);
+        checkUserPermissionForBooking(booking,userId);
+        return booking;
+    }
+
+    @Override
+    public List<Booking> getUserBookings(Long userId, String stateStr) {
+        State state = strToState(stateStr);
+        log.info("getUserBookings, userId = {}, state = {}", userId, state);
+        checkUserExists(userId);
+        switch (state) {
+            case ALL:
+                return bookingRepository.findByBooker_IdOrderByStartDesc(userId);
+            case PAST:
+                return bookingRepository.findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+            case WAITING:
+                return bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING);
+            case REJECTED:
+                return bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+            case CURRENT:
+                return bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
+            case FUTURE:
+                return bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()); //TODO
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public List<Booking> getOwnerBookings(Long userId, String stateStr) {
+        State state = strToState(stateStr);
+        log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
+        checkUserExists(userId);
+        switch (state) {
+            case ALL:
+                return bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId);
+            case PAST:
+                return bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+            case CURRENT:
+                return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
+            case WAITING:
+                return bookingRepository.findByItem_Owner_IdAndStatusContainingOrderByStartDesc(userId, Status.WAITING);
+            case REJECTED:
+                return bookingRepository.findByItem_Owner_IdAndStatusContainingOrderByStartDesc(userId, Status.REJECTED);
+            case FUTURE:
+                return bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+            default:
+                return null;
+        }
     }
 
     private void checkItemAvailable(Item item) {
@@ -63,7 +124,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkItsOwner(Booking booking, Long ownerId) {
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new ValidationException("Вещь не принадлежит этому пользователю");
+            throw new NotFoundException("Вещь не принадлежит этому пользователю");
         }
     }
 
@@ -73,6 +134,29 @@ public class BookingServiceImpl implements BookingService {
                 booking.getEnd().isBefore(booking.getStart()) ||
                 booking.getStart().equals(booking.getEnd())) {
             throw new ValidationException("Ошибка времени страта и/или времени конца показателей");
+        }
+    }
+
+    private State strToState(String str) {
+        if (State.isValidValue(str)) return State.valueOf(str.toUpperCase());
+        else throw new InternalServerException("Unknown state: UNSUPPORTED_STATUS");
+    }
+
+    private void checkBookingExists(Long bookingId) {
+        if (!bookingRepository.existsById(bookingId)) {
+            throw new NotFoundException("Booking doesn't exist");
+        }
+    }
+
+    private void checkUserExists(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User doesn't exist");
+        }
+    }
+
+    private void checkUserPermissionForBooking(Booking booking, Long userId){
+        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId) ){
+            throw new NotFoundException("User does not have permission for this booking");
         }
     }
 
