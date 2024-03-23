@@ -41,6 +41,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
         checkOwnerNotBookingUser(booking, userId);
+        log.info(booking.toString());
         return bookingRepository.save(booking);
     }
 
@@ -106,9 +107,9 @@ public class BookingServiceImpl implements BookingService {
             case CURRENT:
                 return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
             case WAITING:
-                return bookingRepository.findByStatusAndBookerIdOrderByStartDesc(Status.WAITING, userId);
+                return bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.WAITING);
             case REJECTED:
-                return bookingRepository.findByStatusAndBookerIdOrderByStartDesc(Status.REJECTED, userId);
+                return bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.REJECTED);
             case FUTURE:
                 return bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
             default:

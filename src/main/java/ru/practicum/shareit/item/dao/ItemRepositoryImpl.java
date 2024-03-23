@@ -31,7 +31,6 @@ public class ItemRepositoryImpl implements ItemRepository {
     public Item update(Item item, Long itemId) {
         Item itemToUpdate = items.get(itemId);
         ItemServiceImpl.copy(item, itemToUpdate);
-        //if (item.getRequest() != null) itemToUpdate.setRequest(item.getRequest());
         return items.get(itemId);
     }
 

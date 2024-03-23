@@ -10,11 +10,9 @@ import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.handler.NotFoundException;
+import ru.practicum.shareit.item.dao.JpaCommentRepository;
 import ru.practicum.shareit.item.dao.JpaItemRepository;
-import ru.practicum.shareit.item.dto.ItemConverter;
-import ru.practicum.shareit.item.dto.ItemCreateRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.ItemUpdateRequest;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.JpaUserRepository;
 import ru.practicum.shareit.user.model.User;
@@ -33,10 +31,12 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final JpaItemRepository itemRepository;
-    private final ItemConverter itemConverter;
     private final JpaUserRepository userRepository;
     private final JpaBookingRepository bookingRepository;
+    private final JpaCommentRepository commentRepository;
     private final BookingConverter bookingConverter;
+    private final ItemConverter itemConverter;
+    private final CommentConverter commentConverter;
 
     public static void copy(Item newItem, Item oldItem) {
         if (newItem.getName() != null) oldItem.setName(newItem.getName());
@@ -73,13 +73,14 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse get(Long itemId, Long userId) {
         log.info("Получение вещи с id {}, id пользователя {}", itemId, userId);
         ItemResponse response = itemConverter.convert(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
-        log.info(response.toString());
         if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByBookerId(userId)) {
             response.setLastBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
         }
+        response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
+        log.info(response.toString());
         return response;
     }
 

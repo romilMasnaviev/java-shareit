@@ -2,10 +2,9 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemConverter;
-import ru.practicum.shareit.item.dto.ItemCreateRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.ItemUpdateRequest;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.service.CommentService;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -17,34 +16,42 @@ public class ItemController {
 
     private static final String xSharerUserId = "X-Sharer-User-Id";
 
-    private final ItemService service;
+    private final ItemService itemService;
+    private final CommentService commentService;
     private final ItemConverter converter;
+
 
     @PostMapping()
     ItemResponse create(@RequestHeader(xSharerUserId) Long userId, @RequestBody ItemCreateRequest request) {
-        return converter.convert(service.create(request, userId));
+        return converter.convert(itemService.create(request, userId));
     }
 
     @PatchMapping("/{itemId}")
     ItemResponse update(@RequestHeader(xSharerUserId) Long userId,
                         @RequestBody ItemUpdateRequest request,
                         @PathVariable Long itemId) {
-        return converter.convert(service.update(request, userId, itemId));
+        return converter.convert(itemService.update(request, userId, itemId));
     }
 
     @GetMapping("/{itemId}")
     ItemResponse get(@PathVariable Long itemId, @RequestHeader(xSharerUserId) Long userId) {
-        return service.get(itemId,userId);
+        return itemService.get(itemId, userId);
     }
 
     @GetMapping()
     List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long userId) {
-        return service.getAll(userId);
+        return itemService.getAll(userId);
     }
 
     @GetMapping("/search")
     List<ItemResponse> search(@RequestParam String text) {
-        return converter.convert(service.search(text));
+        return converter.convert(itemService.search(text));
+    }
+
+    @PostMapping("/{itemId}/comment")
+    CommentResponse createComment(@RequestHeader(xSharerUserId) Long userId,
+                          @PathVariable Long itemId, @RequestBody CommentCreateRequest request) { //TODO  c проверками null empty через аннотации
+        return commentService.create(userId, itemId, request);
     }
 
 }
