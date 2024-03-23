@@ -39,7 +39,7 @@ public class ItemController {
 
     @GetMapping()
     List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long userId) {
-        return converter.convert(service.getAll(userId));
+        return service.getAll(userId);
     }
 
     @GetMapping("/search")

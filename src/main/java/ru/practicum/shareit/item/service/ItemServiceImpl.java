@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
-import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.item.dao.JpaItemRepository;
 import ru.practicum.shareit.item.dto.ItemConverter;
@@ -23,9 +22,7 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,9 +84,23 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getAll(Long ownerId) {
+    public List<ItemResponse> getAll(Long ownerId) {
         log.info("Получение вещей пользователя с id {}", ownerId);
-        return itemRepository.getItemsByOwnerId(ownerId);
+        List<Item> items = itemRepository.getItemsByOwnerId(ownerId);
+        List<ItemResponse> itemResponses = new ArrayList<>();
+        for (Item item : items) {
+            new ItemResponse();
+            ItemResponse response;
+            response = itemConverter.convert(item);
+            response.setLastBooking(bookingConverter.convert(
+                    bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(item.getId(), LocalDateTime.now())));
+            response.setNextBooking(bookingConverter.convert(
+                    bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())));
+            itemResponses.add(response);
+            log.info(response.toString());
+        }
+        itemResponses.sort(Comparator.comparing(ItemResponse::getId));
+        return itemResponses;
     }
 
     @Override

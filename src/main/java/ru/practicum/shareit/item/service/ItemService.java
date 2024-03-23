@@ -15,7 +15,7 @@ public interface ItemService {
 
     ItemResponse get(Long itemId, Long userId);
 
-    List<Item> getAll(Long ownerId);
+    List<ItemResponse> getAll(Long ownerId);
 
     List<Item> search(String str);
 }
