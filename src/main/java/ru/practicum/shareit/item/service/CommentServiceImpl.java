@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
         if (bookingRepository.existsBookingByBookerIdAndItemIdAndEndBefore(userId, itemId, LocalDateTime.now())) {
             comment.setAuthor(userRepository.findById(userId).orElseThrow());
             comment.setItem(itemRepository.findById(itemId).orElseThrow());
-            comment.setCreateTime(LocalDateTime.now());
+            comment.setCreated(LocalDateTime.now());
             comment.setText(request.getText());
         } else throw new ValidationException("Бронирование не найдено.");
         CommentResponse newComment = converter.convert(commentRepository.save(comment));

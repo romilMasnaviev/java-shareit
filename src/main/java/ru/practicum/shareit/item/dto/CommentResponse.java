@@ -13,7 +13,7 @@ public class CommentResponse {
     private String text;
     private Item item;
     private User author;
-    private LocalDateTime createTime;
+    private LocalDateTime created;
 
     public void setAuthorName() {
         this.authorName = this.author.getName();
