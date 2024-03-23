@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ServerErrorException;
-import ru.practicum.shareit.booking.Status;
+import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
@@ -41,6 +40,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setBooker(user);
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
+        checkOwnerNotBookingUser(booking, userId);
         return bookingRepository.save(booking);
     }
 
@@ -50,7 +50,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(NoSuchElementException::new);
         checkItsOwner(booking, userId);
         if (isApproved) {
-            if (booking.getStatus().equals(Status.APPROVED)){
+            if (booking.getStatus().equals(Status.APPROVED)) {
                 throw new ValidationException("Status can not be changed after approved");
             }
             booking.setStatus(Status.APPROVED);
@@ -66,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
         checkBookingExists(bookingId);
         checkUserExists(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(javax.validation.ValidationException::new);
-        checkUserPermissionForBooking(booking,userId);
+        checkUserPermissionForBooking(booking, userId);
         return booking;
     }
 
@@ -106,9 +106,9 @@ public class BookingServiceImpl implements BookingService {
             case CURRENT:
                 return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
             case WAITING:
-                return bookingRepository.findByItem_Owner_IdAndStatusContainingOrderByStartDesc(userId, Status.WAITING);
+                return bookingRepository.findByStatusAndBookerIdOrderByStartDesc(Status.WAITING, userId);
             case REJECTED:
-                return bookingRepository.findByItem_Owner_IdAndStatusContainingOrderByStartDesc(userId, Status.REJECTED);
+                return bookingRepository.findByStatusAndBookerIdOrderByStartDesc(Status.REJECTED, userId);
             case FUTURE:
                 return bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
             default:
@@ -132,7 +132,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStart().isBefore(LocalDateTime.now()) ||
                 booking.getEnd().isBefore(LocalDateTime.now()) ||
                 booking.getEnd().isBefore(booking.getStart()) ||
-                booking.getStart().equals(booking.getEnd())) {
+                booking.getStart().isEqual(booking.getEnd())) {
             throw new ValidationException("Ошибка времени страта и/или времени конца показателей");
         }
     }
@@ -154,10 +154,15 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkUserPermissionForBooking(Booking booking, Long userId){
-        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId) ){
+    private void checkUserPermissionForBooking(Booking booking, Long userId) {
+        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId)) {
             throw new NotFoundException("User does not have permission for this booking");
         }
     }
 
+    private void checkOwnerNotBookingUser(Booking booking, Long userId) {
+        if (booking.getItem().getOwner().getId().equals(userId)) {
+            throw new NotFoundException("You cannot be both the owner and the creator of a booking.");
+        }
+    }
 }

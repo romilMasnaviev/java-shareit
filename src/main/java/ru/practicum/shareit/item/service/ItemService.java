@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.item.dto.ItemCreateRequest;
+import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.dto.ItemUpdateRequest;
 import ru.practicum.shareit.item.model.Item;
 
@@ -12,7 +13,7 @@ public interface ItemService {
 
     Item update(ItemUpdateRequest request, Long ownerId, Long itemId);
 
-    Item get(Long itemId);
+    ItemResponse get(Long itemId, Long userId);
 
     List<Item> getAll(Long ownerId);
 

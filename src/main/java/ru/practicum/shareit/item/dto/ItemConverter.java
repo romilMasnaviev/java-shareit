@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.dto;
 
 import org.mapstruct.Mapper;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.booking.dto.BookingResponse;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
@@ -16,4 +18,6 @@ public interface ItemConverter {
     Item convert(ItemUpdateRequest request);
 
     List<ItemResponse> convert(List<Item> items);
+
+    BookingResponse convert(Booking booking);
 }

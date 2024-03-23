@@ -26,7 +26,7 @@ public class BookingController {
 
     @PostMapping
     Booking create(@RequestBody @Valid BookingCreateRequest request, @RequestHeader(xSharerUserId) Long userId) {
-        return bookingService.create(bookingConverter.convert(request), request.getItemId(), userId);
+        return bookingService.create(bookingConverter.convert(request), request.getItemId(), userId); //TODO CONVERTER
     }
 
     @PatchMapping("/{bookingId}")

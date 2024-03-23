@@ -4,13 +4,19 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.booking.dao.JpaBookingRepository;
+import ru.practicum.shareit.booking.dto.BookingResponse;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.item.dao.JpaItemRepository;
 import ru.practicum.shareit.item.dto.ItemConverter;
 import ru.practicum.shareit.item.dto.ItemCreateRequest;
+import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.dto.ItemUpdateRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.JpaUserRepository;
@@ -18,6 +24,8 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +41,7 @@ public class ItemServiceImpl implements ItemService {
     private final JpaItemRepository itemRepository;
     private final ItemConverter converter;
     private final JpaUserRepository userRepository;
+    private final JpaBookingRepository bookingRepository;
 
     public static void copy(Item newItem, Item oldItem) {
         if (newItem.getName() != null) oldItem.setName(newItem.getName());
@@ -66,9 +75,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item get(Long itemId) {
-        log.info("Получение вещи с id {}", itemId);
-        return itemRepository.getReferenceById(itemId);
+    public ItemResponse get(Long itemId, Long userId) {
+        log.info("Получение вещи с id {}, id пользователя {}", itemId, userId);
+        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
+        ItemResponse response = converter.convert(item);
+        log.info(response.toString());
+        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByBookerId(userId)) {
+            BookingResponse lastBooking = converter.convert(bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now()));
+            BookingResponse nextBooking = converter.convert(bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now()));
+            //log.info(lastBooking.toString());
+            //log.info(nextBooking.toString());
+            response.setLastBooking(lastBooking);
+            response.setNextBooking(nextBooking);
+            //log.info(response.toString());
+        }
+        return response;
     }
 
     @Override

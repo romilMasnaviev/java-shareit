@@ -21,25 +21,25 @@ public class ItemController {
     private final ItemConverter converter;
 
     @PostMapping()
-    ItemResponse create(@RequestHeader(xSharerUserId) Long ownerId, @RequestBody ItemCreateRequest request) {
-        return converter.convert(service.create(request, ownerId));
+    ItemResponse create(@RequestHeader(xSharerUserId) Long userId, @RequestBody ItemCreateRequest request) {
+        return converter.convert(service.create(request, userId));
     }
 
     @PatchMapping("/{itemId}")
-    ItemResponse update(@RequestHeader(xSharerUserId) Long ownerId,
+    ItemResponse update(@RequestHeader(xSharerUserId) Long userId,
                         @RequestBody ItemUpdateRequest request,
                         @PathVariable Long itemId) {
-        return converter.convert(service.update(request, ownerId, itemId));
+        return converter.convert(service.update(request, userId, itemId));
     }
 
     @GetMapping("/{itemId}")
-    ItemResponse get(@PathVariable Long itemId) {
-        return converter.convert(service.get(itemId));
+    ItemResponse get(@PathVariable Long itemId, @RequestHeader(xSharerUserId) Long userId) {
+        return service.get(itemId,userId);
     }
 
     @GetMapping()
-    List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long ownerId) {
-        return converter.convert(service.getAll(ownerId));
+    List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long userId) {
+        return converter.convert(service.getAll(userId));
     }
 
     @GetMapping("/search")
