@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
+import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.item.dao.JpaCommentRepository;
 import ru.practicum.shareit.item.dao.JpaItemRepository;
@@ -20,7 +21,10 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,9 +82,13 @@ public class ItemServiceImpl implements ItemService {
                     bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
+            if (response.getNextBooking().getStatus().equals(Status.REJECTED)) {
+                response.setNextBooking(null);
+            }
         }
         response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
         log.info(response.toString());
+        log.info(LocalDateTime.now().toString());
         return response;
     }
 
