@@ -13,4 +13,5 @@ public interface BookingConverter {
     BookingResponse convert(Booking booking);
 
     List<BookingResponse> convert(List<Booking> booking);
+
 }

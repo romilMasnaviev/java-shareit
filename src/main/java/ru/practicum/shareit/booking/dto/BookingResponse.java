@@ -21,4 +21,9 @@ public class BookingResponse {
     Status status;
     LocalDateTime start;
     LocalDateTime end;
+    Long bookerId;
+
+    public Long getBookerId() {
+        return booker != null ? booker.getId() : null;
+    }
 }

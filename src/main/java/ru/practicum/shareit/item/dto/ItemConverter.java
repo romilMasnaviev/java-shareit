@@ -19,5 +19,4 @@ public interface ItemConverter {
 
     List<ItemResponse> convert(List<Item> items);
 
-    BookingResponse convert(Booking booking);
 }
