@@ -52,20 +52,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item create(@Valid ItemCreateRequest request, Long ownerId) {
-        log.info("Создание вещи {}", request);
+        log.info("Creating item {}", request);
         Item item = itemConverter.convert(request);
         Optional<User> optionalUser = userRepository.findById(ownerId);
         if (optionalUser.isPresent()) {
             item.setOwner(optionalUser.get());
         } else {
-            throw new EntityNotFoundException("Пользователь с id " + ownerId + " не найден");
+            throw new EntityNotFoundException("User with id " + ownerId + " not found");
         }
         return itemRepository.save(item);
     }
 
     @Override
     public Item update(ItemUpdateRequest request, Long ownerId, Long itemId) {
-        log.info("Обновление вещи {} с id владельца {}", request, ownerId);
+        log.info("Updating item {} with owner id {}", request, ownerId);
         Item newItem = itemConverter.convert(request);
         Item oldItem = itemRepository.getReferenceById(itemId);
         copy(newItem, oldItem);
@@ -75,31 +75,25 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse get(Long itemId, Long userId) {
-        log.info("Получение вещи с id {}, id пользователя {}", itemId, userId);
+        log.info("Getting item with id {}, user id {}", itemId, userId);
         ItemResponse response = itemConverter.convert(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
         if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
             response.setLastBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
-            if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
-                response.setNextBooking(null);
-            }
-            log.info("1234567654332435");
+            checkRejectedNextBooking(response);
         }
         response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
-        log.info(response.toString());
-        log.info(LocalDateTime.now().toString());
         return response;
     }
 
     @Override
     public List<ItemResponse> getAll(Long ownerId) {
-        log.info("Получение вещей пользователя с id {}", ownerId);
+        log.info("Getting items for user with id {}", ownerId);
         List<Item> items = itemRepository.getItemsByOwnerId(ownerId);
         List<ItemResponse> itemResponses = new ArrayList<>();
         for (Item item : items) {
-            new ItemResponse();
             ItemResponse response;
             response = itemConverter.convert(item);
             response.setLastBooking(bookingConverter.convert(
@@ -107,7 +101,6 @@ public class ItemServiceImpl implements ItemService {
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())));
             itemResponses.add(response);
-            log.info(response.toString());
         }
         itemResponses.sort(Comparator.comparing(ItemResponse::getId));
         return itemResponses;
@@ -115,7 +108,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<Item> search(String str) {
-        log.info("Получение вещей по слову {}", str);
+        log.info("Searching items by keyword {}", str);
         return searchAvailableItemsByStr(str);
     }
 
@@ -130,7 +123,13 @@ public class ItemServiceImpl implements ItemService {
 
     private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
         if (!item.getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("Нельзя обновлять вещь через другого пользователя");
+            throw new NotFoundException("Cannot update item through a different user");
+        }
+    }
+
+    private void checkRejectedNextBooking(ItemResponse response) {
+        if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
+            response.setNextBooking(null);
         }
     }
 

@@ -17,6 +17,7 @@ public class ItemController {
 
     private final ItemService itemService;
     private final CommentService commentService;
+
     private final ItemConverter converter;
 
 
@@ -49,7 +50,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     CommentResponse createComment(@RequestHeader(xSharerUserId) Long userId,
-                                  @PathVariable Long itemId, @RequestBody CommentCreateRequest request) { //TODO  c проверками null empty через аннотации
+                                  @PathVariable Long itemId, @RequestBody CommentCreateRequest request) {
         return commentService.create(userId, itemId, request);
     }
 
