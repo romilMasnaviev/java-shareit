@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.handler.NotFoundException;
@@ -35,7 +36,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final ru.practicum.shareit.booking.dao.bookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final BookingConverter bookingConverter;
     private final ItemConverter itemConverter;

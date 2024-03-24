@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.dto.BookingCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingResponse;
@@ -28,7 +29,7 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class BookingServiceImpl implements BookingService {
 
-    private final ru.practicum.shareit.booking.dao.bookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingConverter converter;
@@ -111,15 +112,15 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
         switch (state) {
             case ALL:
-                return converter.convert(bookingRepository.
-                        findByItem_Owner_IdOrderByStartDesc(userId));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdOrderByStartDesc(userId));
             case PAST:
                 return converter.convert(bookingRepository
                         .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now()));
             case CURRENT:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId
-                                , LocalDateTime.now(), LocalDateTime.now()));
+                        .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
+                                LocalDateTime.now(), LocalDateTime.now()));
             case WAITING:
                 return converter.convert(bookingRepository
                         .findByItem_Owner_IdAndStatus(userId, Status.WAITING));
