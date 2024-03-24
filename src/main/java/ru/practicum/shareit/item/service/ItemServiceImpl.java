@@ -77,14 +77,15 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse get(Long itemId, Long userId) {
         log.info("Получение вещи с id {}, id пользователя {}", itemId, userId);
         ItemResponse response = itemConverter.convert(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
-        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByBookerId(userId)) {
+        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
             response.setLastBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(itemId, LocalDateTime.now())));
+                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
-            if (response.getNextBooking().getStatus().equals(Status.REJECTED)) {
+            if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
                 response.setNextBooking(null);
             }
+            log.info("1234567654332435");
         }
         response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
         log.info(response.toString());
@@ -102,7 +103,7 @@ public class ItemServiceImpl implements ItemService {
             ItemResponse response;
             response = itemConverter.convert(item);
             response.setLastBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(item.getId(), LocalDateTime.now())));
+                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(), LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())));
             itemResponses.add(response);
