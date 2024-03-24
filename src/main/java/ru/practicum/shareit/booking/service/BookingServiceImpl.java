@@ -4,18 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.dto.BookingCreateRequest;
+import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.handler.InternalServerException;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
-import ru.practicum.shareit.item.dao.JpaItemRepository;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dao.JpaUserRepository;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -28,13 +28,13 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class BookingServiceImpl implements BookingService {
 
-    private final JpaBookingRepository bookingRepository;
-    private final JpaItemRepository itemRepository;
-    private final JpaUserRepository userRepository;
+    private final ru.practicum.shareit.booking.dao.bookingRepository bookingRepository;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final BookingConverter converter;
 
     @Override
-    public Booking create(BookingCreateRequest request, Long itemId, Long userId) {
+    public BookingResponse create(BookingCreateRequest request, Long itemId, Long userId) {
         Booking booking = converter.convert(request);
         log.info("create booking = {}, itemId = {}, userId = {}", booking, itemId, userId);
         checkTime(booking);
@@ -45,11 +45,11 @@ public class BookingServiceImpl implements BookingService {
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
         checkOwnerNotBookingUser(booking, userId);
-        return bookingRepository.save(booking);
+        return converter.convert(bookingRepository.save(booking));
     }
 
     @Override
-    public Booking approve(Long bookingId, Long userId, Boolean isApproved) {
+    public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
         log.info("approve bookingId = {}, userId = {}, isApproved = {}", bookingId, userId, isApproved);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(NoSuchElementException::new);
         checkItsOwner(booking, userId);
@@ -61,62 +61,74 @@ public class BookingServiceImpl implements BookingService {
         } else {
             booking.setStatus(Status.REJECTED);
         }
-        return bookingRepository.save(booking);
+        return converter.convert(bookingRepository.save(booking));
     }
 
     @Override
-    public Booking get(Long bookingId, Long userId) {
+    public BookingResponse get(Long bookingId, Long userId) {
         log.info("get booking, bookingId = {}, userId = {}", bookingId, userId);
         checkBookingExists(bookingId);
         checkUserExists(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(javax.validation.ValidationException::new);
         checkUserPermissionForBooking(booking, userId);
-        return booking;
+        return converter.convert(booking);
     }
 
     @Override
-    public List<Booking> getUserBookings(Long userId, String stateStr) {
+    public List<BookingResponse> getUserBookings(Long userId, String stateStr) {
         State state = strToState(stateStr);
         log.info("getUserBookings, userId = {}, state = {}", userId, state);
         checkUserExists(userId);
         switch (state) {
             case ALL:
-                return bookingRepository.findByBooker_IdOrderByStartDesc(userId);
+                return converter.convert
+                        (bookingRepository.findByBooker_IdOrderByStartDesc(userId));
             case PAST:
-                return bookingRepository.findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now()));
             case WAITING:
-                return bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING);
+                return converter.convert
+                        (bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING));
             case REJECTED:
-                return bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+                return converter.convert
+                        (bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED));
             case CURRENT:
-                return bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
-                        LocalDateTime.now(), LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
+                                LocalDateTime.now(), LocalDateTime.now()));
             case FUTURE:
-                return bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
             default:
                 return null;
         }
     }
 
     @Override
-    public List<Booking> getOwnerBookings(Long userId, String stateStr) {
+    public List<BookingResponse> getOwnerBookings(Long userId, String stateStr) {
         State state = strToState(stateStr);
         log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
         checkUserExists(userId);
         switch (state) {
             case ALL:
-                return bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId);
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId));
             case PAST:
-                return bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now()));
             case CURRENT:
-                return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
-                        LocalDateTime.now(), LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
+                                LocalDateTime.now(), LocalDateTime.now()));
             case WAITING:
-                return bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.WAITING);
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.WAITING));
             case REJECTED:
-                return bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.REJECTED);
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.REJECTED));
             case FUTURE:
-                return bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return converter.convert
+                        (bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
             default:
                 return null;
         }

@@ -7,15 +7,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.handler.NotFoundException;
-import ru.practicum.shareit.item.dao.JpaCommentRepository;
-import ru.practicum.shareit.item.dao.JpaItemRepository;
+import ru.practicum.shareit.item.dao.CommentRepository;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dao.JpaUserRepository;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityNotFoundException;
@@ -34,10 +33,10 @@ import java.util.stream.Collectors;
 @Validated
 public class ItemServiceImpl implements ItemService {
 
-    private final JpaItemRepository itemRepository;
-    private final JpaUserRepository userRepository;
-    private final JpaBookingRepository bookingRepository;
-    private final JpaCommentRepository commentRepository;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+    private final ru.practicum.shareit.booking.dao.bookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
     private final BookingConverter bookingConverter;
     private final ItemConverter itemConverter;
     private final CommentConverter commentConverter;
@@ -51,7 +50,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item create(@Valid ItemCreateRequest request, Long ownerId) {
+    public ItemResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
         Item item = itemConverter.convert(request);
         Optional<User> optionalUser = userRepository.findById(ownerId);
@@ -60,17 +59,17 @@ public class ItemServiceImpl implements ItemService {
         } else {
             throw new EntityNotFoundException("User with id " + ownerId + " not found");
         }
-        return itemRepository.save(item);
+        return itemConverter.convert(itemRepository.save(item));
     }
 
     @Override
-    public Item update(ItemUpdateRequest request, Long ownerId, Long itemId) {
+    public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
         log.info("Updating item {} with owner id {}", request, ownerId);
         Item newItem = itemConverter.convert(request);
         Item oldItem = itemRepository.getReferenceById(itemId);
         copy(newItem, oldItem);
         checkItsItemOwner(ownerId, oldItem);
-        return itemRepository.save(oldItem);
+        return itemConverter.convert(itemRepository.save(oldItem));
     }
 
     @Override
@@ -107,9 +106,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> search(String str) {
+    public List<ItemResponse> search(String str) {
         log.info("Searching items by keyword {}", str);
-        return searchAvailableItemsByStr(str);
+        return itemConverter.convert(searchAvailableItemsByStr(str));
     }
 
     private List<Item> searchAvailableItemsByStr(@NonNull String str) {

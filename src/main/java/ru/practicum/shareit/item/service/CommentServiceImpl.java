@@ -4,15 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.booking.dao.JpaBookingRepository;
 import ru.practicum.shareit.handler.ValidationException;
-import ru.practicum.shareit.item.dao.JpaCommentRepository;
-import ru.practicum.shareit.item.dao.JpaItemRepository;
+import ru.practicum.shareit.item.dao.CommentRepository;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.CommentConverter;
 import ru.practicum.shareit.item.dto.CommentCreateRequest;
 import ru.practicum.shareit.item.dto.CommentResponse;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.user.dao.JpaUserRepository;
+import ru.practicum.shareit.user.dao.UserRepository;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -23,10 +22,10 @@ import java.time.LocalDateTime;
 @Validated
 public class CommentServiceImpl implements CommentService {
 
-    private final JpaCommentRepository commentRepository;
-    private final JpaBookingRepository bookingRepository;
-    private final JpaUserRepository userRepository;
-    private final JpaItemRepository itemRepository;
+    private final CommentRepository commentRepository;
+    private final ru.practicum.shareit.booking.dao.bookingRepository bookingRepository;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
     private final CommentConverter converter;
 
     @Override

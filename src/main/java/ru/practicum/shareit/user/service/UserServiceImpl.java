@@ -5,9 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.user.dao.JpaUserRepository;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
 import ru.practicum.shareit.user.dto.UserCreateRequest;
+import ru.practicum.shareit.user.dto.UserResponse;
 import ru.practicum.shareit.user.dto.UserUpdateRequest;
 import ru.practicum.shareit.user.model.User;
 
@@ -21,24 +22,24 @@ import java.util.List;
 @Validated
 public class UserServiceImpl implements UserService {
 
-    private final JpaUserRepository repository;
+    private final UserRepository repository;
     private final UserConverter converter;
 
     @Override
-    public User create(@Valid UserCreateRequest request) {
+    public UserResponse create(@Valid UserCreateRequest request) {
         log.info("Creating user: {}", request);
         User user = converter.convert(request);
-        return repository.save(user);
+        return converter.convert(repository.save(user));
     }
 
     @Override
-    public User get(Long id) {
+    public UserResponse get(Long id) {
         log.info("Retrieving user with ID: {}", id);
-        return repository.getReferenceById(id);
+        return converter.convert(repository.getReferenceById(id));
     }
 
     @Override
-    public User update(UserUpdateRequest request, Long userId) {
+    public UserResponse update(UserUpdateRequest request, Long userId) {
         log.info("Updating user: {}", request);
         User newUser = converter.convert(request);
         User oldUser = repository.getReferenceById(userId);
@@ -48,21 +49,21 @@ public class UserServiceImpl implements UserService {
         if (newUser.getEmail() != null) {
             oldUser.setEmail(newUser.getEmail());
         }
-        return repository.save(oldUser);
+        return converter.convert(repository.save(oldUser));
     }
 
     @Override
-    public User delete(Long id) {
+    public UserResponse delete(Long id) {
         log.info("Deleting user with ID: {}", id);
         User user = repository.getReferenceById(id);
         repository.deleteById(id);
-        return user;
+        return converter.convert(user);
     }
 
     @Override
-    public List<User> getAll() {
+    public List<UserResponse> getAll() {
         log.info("Retrieving all users");
-        return repository.findAll();
+        return converter.convert(repository.findAll());
     }
 
 }

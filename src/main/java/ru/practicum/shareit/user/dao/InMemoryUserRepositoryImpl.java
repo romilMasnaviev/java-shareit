@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-public class UserRepositoryImpl implements UserRepository {
+public class InMemoryUserRepositoryImpl implements InMemoryUserRepository {
 
     @Getter
     private final Map<Long, User> users = new HashMap<>();

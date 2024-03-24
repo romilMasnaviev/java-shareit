@@ -1,15 +1,11 @@
 package ru.practicum.shareit.item.dao;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.Map;
+import java.util.List;
 
-public interface ItemRepository {
-    Item create(Item item);
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    Item get(Long itemId);
-
-    Item update(Item item, Long itemId);
-
-    Map<Long, Item> getAll();
+    List<Item> getItemsByOwnerId(Long ownerId);
 }
