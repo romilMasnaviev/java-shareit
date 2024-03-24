@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.JpaBookingRepository;
+import ru.practicum.shareit.booking.dto.BookingConverter;
+import ru.practicum.shareit.booking.dto.BookingCreateRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
@@ -29,9 +31,11 @@ public class BookingServiceImpl implements BookingService {
     private final JpaBookingRepository bookingRepository;
     private final JpaItemRepository itemRepository;
     private final JpaUserRepository userRepository;
+    private final BookingConverter converter;
 
     @Override
-    public Booking create(Booking booking, Long itemId, Long userId) {
+    public Booking create(BookingCreateRequest request, Long itemId, Long userId) {
+        Booking booking = converter.convert(request);
         log.info("create booking = {}, itemId = {}, userId = {}", booking, itemId, userId);
         checkTime(booking);
         Item item = itemRepository.findById(itemId).orElseThrow(NoSuchElementException::new);
@@ -86,9 +90,10 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 return bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED);
             case CURRENT:
-                return bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
+                return bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
+                        LocalDateTime.now(), LocalDateTime.now());
             case FUTURE:
-                return bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()); //TODO
+                return bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
             default:
                 return null;
         }
@@ -105,7 +110,8 @@ public class BookingServiceImpl implements BookingService {
             case PAST:
                 return bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
             case CURRENT:
-                return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId, LocalDateTime.now(), LocalDateTime.now());
+                return bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
+                        LocalDateTime.now(), LocalDateTime.now());
             case WAITING:
                 return bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.WAITING);
             case REJECTED:
@@ -119,13 +125,13 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkItemAvailable(Item item) {
         if (!item.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для брони");
+            throw new ValidationException("Item is not available for booking");
         }
     }
 
     private void checkItsOwner(Booking booking, Long ownerId) {
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("Вещь не принадлежит этому пользователю");
+            throw new NotFoundException("The item does not belong to this user");
         }
     }
 
@@ -134,7 +140,8 @@ public class BookingServiceImpl implements BookingService {
                 booking.getEnd().isBefore(LocalDateTime.now()) ||
                 booking.getEnd().isBefore(booking.getStart()) ||
                 booking.getStart().isEqual(booking.getEnd())) {
-            throw new ValidationException("Ошибка времени страта и/или времени конца показателей");
+            throw new ValidationException("Error in start and/or end time parameters");
+
         }
     }
 
