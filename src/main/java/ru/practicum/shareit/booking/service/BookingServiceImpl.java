@@ -45,7 +45,6 @@ public class BookingServiceImpl implements BookingService {
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
         checkOwnerNotBookingUser(booking, userId);
-        log.info(booking.toString());
         return bookingRepository.save(booking);
     }
 
