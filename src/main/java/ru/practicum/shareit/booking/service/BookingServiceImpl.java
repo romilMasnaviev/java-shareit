@@ -81,24 +81,24 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
         switch (state) {
             case ALL:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdOrderByStartDesc(userId));
+                return converter.convert(bookingRepository
+                        .findByBooker_IdOrderByStartDesc(userId));
             case PAST:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now()));
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now()));
             case WAITING:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING));
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING));
             case REJECTED:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED));
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED));
             case CURRENT:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
                                 LocalDateTime.now(), LocalDateTime.now()));
             case FUTURE:
-                return converter.convert
-                        (bookingRepository.findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
             default:
                 return null;
         }
@@ -111,24 +111,24 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
         switch (state) {
             case ALL:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId));
+                return converter.convert(bookingRepository.
+                        findByItem_Owner_IdOrderByStartDesc(userId));
             case PAST:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now()));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now()));
             case CURRENT:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
-                                LocalDateTime.now(), LocalDateTime.now()));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId
+                                , LocalDateTime.now(), LocalDateTime.now()));
             case WAITING:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.WAITING));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStatus(userId, Status.WAITING));
             case REJECTED:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdAndStatus(userId, Status.REJECTED));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStatus(userId, Status.REJECTED));
             case FUTURE:
-                return converter.convert
-                        (bookingRepository.findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
             default:
                 return null;
         }
@@ -147,10 +147,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkTime(Booking booking) {
-        if (booking.getStart().isBefore(LocalDateTime.now()) ||
-                booking.getEnd().isBefore(LocalDateTime.now()) ||
-                booking.getEnd().isBefore(booking.getStart()) ||
-                booking.getStart().isEqual(booking.getEnd())) {
+        if (booking.getStart().isBefore(LocalDateTime.now()) || booking.getEnd().isBefore(LocalDateTime.now())
+                || booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isEqual(booking.getEnd())) {
             throw new ValidationException("Error in start and/or end time parameters");
 
         }
