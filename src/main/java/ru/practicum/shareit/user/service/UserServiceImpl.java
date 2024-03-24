@@ -26,30 +26,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(@Valid UserCreateRequest request) {
-        log.info("Создание пользователя {}", request);
+        log.info("Creating user: {}", request);
         User user = converter.convert(request);
         return repository.save(user);
     }
 
     @Override
     public User get(Long id) {
-        log.info("Возврат пользователя с id {}", id);
+        log.info("Retrieving user with ID: {}", id);
         return repository.getReferenceById(id);
     }
 
     @Override
     public User update(UserUpdateRequest request, Long userId) {
-        log.info("Обновление пользователя {}", request);
+        log.info("Updating user: {}", request);
         User newUser = converter.convert(request);
         User oldUser = repository.getReferenceById(userId);
-        if (newUser.getName() != null) oldUser.setName(newUser.getName());
-        if (newUser.getEmail() != null) oldUser.setEmail(newUser.getEmail());
+        if (newUser.getName() != null) {
+            oldUser.setName(newUser.getName());
+        }
+        if (newUser.getEmail() != null) {
+            oldUser.setEmail(newUser.getEmail());
+        }
         return repository.save(oldUser);
     }
 
     @Override
     public User delete(Long id) {
-        log.info("Удаление пользователя с id {}", id);
+        log.info("Deleting user with ID: {}", id);
         User user = repository.getReferenceById(id);
         repository.deleteById(id);
         return user;
@@ -57,7 +61,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAll() {
-        log.info("Возврат всех пользователей");
+        log.info("Retrieving all users");
         return repository.findAll();
     }
+
 }
