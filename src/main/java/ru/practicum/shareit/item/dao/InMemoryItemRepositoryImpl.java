@@ -3,13 +3,14 @@ package ru.practicum.shareit.item.dao;
 import lombok.Getter;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemServiceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Getter
 @Repository
-public class ItemRepositoryImpl implements ItemRepository {
+public class InMemoryItemRepositoryImpl implements InMemoryItemRepository {
 
     private final Map<Long, Item> items = new HashMap<>();
     private Long id = 1L;
@@ -29,11 +30,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Item update(Item item, Long itemId) {
         Item itemToUpdate = items.get(itemId);
-        if (item.getName() != null) itemToUpdate.setName(item.getName());
-        if (item.getDescription() != null) itemToUpdate.setDescription(item.getDescription());
-        if (item.getAvailable() != null) itemToUpdate.setAvailable(item.getAvailable());
-        if (item.getOwner() != null) itemToUpdate.setOwner(item.getOwner());
-        if (item.getRequest() != null) itemToUpdate.setRequest(item.getRequest());
+        ItemServiceImpl.copy(item, itemToUpdate);
         return items.get(itemId);
     }
 
