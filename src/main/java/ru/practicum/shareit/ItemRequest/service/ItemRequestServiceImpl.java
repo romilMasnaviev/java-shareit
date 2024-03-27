@@ -1,9 +1,13 @@
 package ru.practicum.shareit.ItemRequest.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.ItemRequest.dao.ItemRequestRepository;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestConverter;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
@@ -12,32 +16,62 @@ import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
+
+import ru.practicum.shareit.item.dto.ItemGetItemRequest;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 @Transactional
+@Validated
+@Slf4j
 public class ItemRequestServiceImpl implements ItemRequestService {
 
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
 
-    private final ItemRequestConverter converter;
+    private final ItemRequestConverter itemRequestConverter;
 
     @Override
     public ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId) {
-        if(!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
+        log.info("Create ItemRequest {}, user id {}", request, userId);
+        if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
+        if (request == null) throw new ValidationException("request is null");
         if (request.getDescription() == null || request.getDescription().isEmpty())
             throw new ValidationException("Description must not be empty");
-        ItemRequest item = converter.convert(request);
+        ItemRequest item = itemRequestConverter.convert(request);
+        item.setCreated(LocalDateTime.now());
         item.setOwner(userRepository.getReferenceById(userId));
-        return converter.convert(itemRequestRepository.save(item));
+        return itemRequestConverter.convert(itemRequestRepository.save(item));
     }
 
     @Override
-    public List<ItemRequestGetResponse> get(Long userId) {
-        return null;
+    public List<ItemRequestGetResponse> get(Long userId) { //TODO Запросы должны возвращаться в отсортированном порядке от более новых к более старым.
+        log.info("Get Users List ItemRequests , user id {}", userId);
+        if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
+        List<ItemRequestGetResponse> getResponseList = itemRequestConverter.convert(itemRequestRepository.findAllByOwner_IdOrderByCreatedDesc(userId));
+        getResponseList.forEach(response -> {
+            List<ItemGetItemRequest> items = response.getItems();
+            items.forEach(item -> item.setRequestId(1L));
+        });
+        return getResponseList;
     }
+
+    @Override
+    public List<ItemRequestGetResponse> get(Long userId, Long from, Long size) {
+        log.info("Get All Users List ItemRequests , user id {}, from {}, size {}", userId, from, size);
+        if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
+        if (from == null || size == null) return new ArrayList<>();
+        if (from < 0 || size < 1) throw new ValidationException("Incorrect data ( from or size)");
+        Pageable pageable = PageRequest.of(0, size.intValue());
+        List<ItemRequest> itemRequests = itemRequestRepository.findAllByIdGreaterThanOrderByCreatedDesc(from, pageable);
+        return itemRequestConverter.convert(itemRequests);
+    }
+
+
 }

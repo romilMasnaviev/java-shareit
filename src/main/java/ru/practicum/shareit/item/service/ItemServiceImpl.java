@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.ItemRequest.dao.ItemRequestRepository;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingConverter;
 import ru.practicum.shareit.booking.model.Status;
@@ -20,6 +21,7 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,6 +40,8 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
+
     private final BookingConverter bookingConverter;
     private final ItemConverter itemConverter;
     private final CommentConverter commentConverter;
@@ -54,14 +58,17 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
         Item item = itemConverter.convert(request);
-        Optional<User> optionalUser = userRepository.findById(ownerId);
-        if (optionalUser.isPresent()) {
-            item.setOwner(optionalUser.get());
-        } else {
-            throw new EntityNotFoundException("User with id " + ownerId + " not found");
-        }
-        return itemConverter.convert(itemRepository.save(item));
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        item.setOwner(owner);
+        Optional<Long> requestId = Optional.ofNullable(request.getRequestId());
+        requestId.ifPresent(id -> item.setRequest(itemRequestRepository.findById(id)
+                .orElseThrow(() -> new ValidationException("Request not found"))));
+        ItemResponse response = itemConverter.convert(itemRepository.save(item));
+        requestId.ifPresent(response::setRequestId);
+        return response;
     }
+
 
     @Override
     public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {

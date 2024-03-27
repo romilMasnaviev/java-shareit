@@ -18,13 +18,20 @@ public class ItemRequestController {
     private final ItemRequestService service;
 
     @PostMapping
-    ItemRequestCreateResponse create(@RequestHeader(xSharerUserId) Long userId, ItemRequestCreateRequest request){
-        return service.create(request,userId);
+    ItemRequestCreateResponse create(@RequestHeader(xSharerUserId) Long userId,@RequestBody(required = false) ItemRequestCreateRequest request) {
+        return service.create(request, userId);
     }
 
     @GetMapping
-    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId){
+    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId) {
         return service.get(userId);
+    }
+
+    @GetMapping("/all")
+    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId,
+                                     @RequestParam(required = false, name = "from") Long from,
+                                     @RequestParam(required = false, name = "size") Long size) {
+        return service.get(userId, from, size);
     }
 
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
@@ -14,8 +15,10 @@ public class ItemResponse {
     private String description;
     private Boolean available;
     private User owner;
+    @JsonIgnoreProperties("owner")
     private ItemRequest request;
     private BookingResponse lastBooking;
     private BookingResponse nextBooking;
     private List<CommentResponse> comments;
+    private Long requestId;
 }

@@ -1,13 +1,11 @@
 package ru.practicum.shareit.item.dto;
 
 import org.mapstruct.Mapper;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-@Validated
 public interface ItemConverter {
     Item convert(ItemCreateRequest request);
 
@@ -17,5 +15,6 @@ public interface ItemConverter {
 
     List<ItemResponse> convert(List<Item> items);
 
+    List<ItemGetItemRequest> convertToItemRequestList(List<Item> items);
 
 }
