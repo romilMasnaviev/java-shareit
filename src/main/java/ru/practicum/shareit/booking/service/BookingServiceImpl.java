@@ -160,12 +160,17 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponse> getUserBookingsWithPageable(Long userId, String stateStr, Long from, Long size) {
         validatePageParams(from, size);
         State state = strToState(stateStr);
-        log.info("getUserBookings, userId = {}, state = {}", userId, state);
+        log.info("getUserBookings, userId = {}, state = {}, from = {}, size = {}", userId, state,from,size);
+        log.info(bookingRepository.findAll().toString());
+        log.info(bookingRepository.findByBooker_Id(userId).toString());
         checkUserExists(userId);
-        Pageable pageable = PageRequest.of(from.intValue(), size.intValue());
+        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
+
 
         switch (state) {
             case ALL:
+                log.info(bookingRepository
+                        .findByBooker_IdOrderByStartDesc(userId, pageable).toString());
                 return converter.convert(bookingRepository
                         .findByBooker_IdOrderByStartDesc(userId, pageable));
             case PAST:
@@ -195,7 +200,7 @@ public class BookingServiceImpl implements BookingService {
         State state = strToState(stateStr);
         log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
         checkUserExists(userId);
-        Pageable pageable = PageRequest.of(from.intValue(), size.intValue());
+        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
 
         switch (state) {
             case ALL:
