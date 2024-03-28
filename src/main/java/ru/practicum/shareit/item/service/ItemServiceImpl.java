@@ -4,6 +4,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -24,10 +27,8 @@ import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +84,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse get(Long itemId, Long userId) {
         log.info("Getting item with id {}, user id {}", itemId, userId);
-        ItemResponse response = itemConverter.convert(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
+        ItemResponse response = itemConverter.convert(itemRepository.findById(itemId)
+                .orElseThrow(EntityNotFoundException::new));
         if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
             response.setLastBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
@@ -96,36 +98,64 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponse> getAll(Long ownerId) {
-        log.info("Getting items for user with id {}", ownerId);
-        List<Item> items = itemRepository.getItemsByOwnerId(ownerId);
+    public List<ItemResponse> getAllHub(Long ownerId, Long from, Long size) {
+        if (from != null && size != null) {
+            return getAllWithPagination(ownerId, from, size);
+        } else {
+            return getAll(ownerId);
+        }
+    }
+
+    private List<ItemResponse> getAllWithPagination(Long ownerId, Long from, Long size) {
+        log.info("Getting items with pagination for user with id {}", ownerId);
+        validatePageParams(from, size);
+        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
+        List<Item> items = itemRepository.getItemsByOwnerId(ownerId, pageable);
+        return getItemResponses(items);
+    }
+
+    private List<ItemResponse> getItemResponses(List<Item> items) {
         List<ItemResponse> itemResponses = new ArrayList<>();
         for (Item item : items) {
-            ItemResponse response;
-            response = itemConverter.convert(item);
+            ItemResponse response = itemConverter.convert(item);
             response.setLastBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(), LocalDateTime.now())));
+                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(),
+                            LocalDateTime.now())));
             response.setNextBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())));
             itemResponses.add(response);
         }
-        itemResponses.sort(Comparator.comparing(ItemResponse::getId));
         return itemResponses;
     }
 
-    @Override
-    public List<ItemResponse> search(String str) {
-        log.info("Searching items by keyword {}", str);
-        return itemConverter.convert(searchAvailableItemsByStr(str));
+
+    private List<ItemResponse> getAll(Long ownerId) {
+        log.info("Getting all items for user with id {}", ownerId);
+        List<Item> items = itemRepository.getItemsByOwnerId(ownerId);
+        return getItemResponses(items);
     }
 
-    private List<Item> searchAvailableItemsByStr(@NonNull String str) {
-        if (str.isEmpty() || str.isBlank()) {
-            return new ArrayList<>();
+    @Override
+    public List<ItemResponse> search(String str, Long from, Long size) {
+        log.info("Searching items by keyword {}", str);
+        Pageable pageable = createPageable(from, size);
+        Page<Item> itemPage = searchAvailableItemsByStr(str, pageable);
+        return itemPage.map(itemConverter::convert).getContent();
+    }
+
+    private Page<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
+        if (StringUtils.isBlank(str)) {
+            return Page.empty();
         }
-        return itemRepository.findAll().stream().filter(Item::getAvailable).filter(item ->
-                StringUtils.containsIgnoreCase(item.getDescription(), str) ||
-                        StringUtils.containsIgnoreCase(item.getName(), str)).collect(Collectors.toList());
+        return itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(str,
+                str, pageable);
+    }
+
+    private Pageable createPageable(Long from, Long size) {
+        if (from == null || size == null) {
+            return Pageable.unpaged();
+        }
+        return PageRequest.of(from.intValue(), size.intValue());
     }
 
     private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
@@ -137,6 +167,12 @@ public class ItemServiceImpl implements ItemService {
     private void checkRejectedNextBooking(ItemResponse response) {
         if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
             response.setNextBooking(null);
+        }
+    }
+
+    private void validatePageParams(Long from, Long size) {
+        if (from == null || size == null || from < 0 || size <= 0) {
+            throw new ru.practicum.shareit.handler.ValidationException("Invalid pagination parameters");
         }
     }
 

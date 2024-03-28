@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS items
     description VARCHAR(200),
     available   BOOLEAN      NOT NULL,
     owner_id    BIGINT REFERENCES users (id),
-    request_id  BIGINT REFERENCES requests(id)
+    request_id  BIGINT REFERENCES requests (id)
 );
 
 CREATE TABLE IF NOT EXISTS bookings
