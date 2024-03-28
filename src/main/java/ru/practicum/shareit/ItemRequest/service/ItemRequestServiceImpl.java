@@ -17,6 +17,7 @@ import ru.practicum.shareit.ItemRequest.model.ItemRequest;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
 
+import ru.practicum.shareit.item.dto.ItemConverter;
 import ru.practicum.shareit.item.dto.ItemGetItemRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
@@ -36,6 +37,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
 
     private final ItemRequestConverter itemRequestConverter;
+    private final ItemConverter itemConverter;
 
     @Override
     public ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId) {
@@ -51,7 +53,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemRequestGetResponse> get(Long userId) { //TODO Запросы должны возвращаться в отсортированном порядке от более новых к более старым.
+    public List<ItemRequestGetResponse> get(Long userId) {
         log.info("Get Users List ItemRequests , user id {}", userId);
         if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
         List<ItemRequestGetResponse> getResponseList = itemRequestConverter.convert(itemRequestRepository.findAllByOwner_IdOrderByCreatedDesc(userId));
@@ -70,7 +72,16 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (from < 0 || size < 1) throw new ValidationException("Incorrect data ( from or size)");
         Pageable pageable = PageRequest.of(0, size.intValue());
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByIdGreaterThanOrderByCreatedDesc(from, pageable);
+        itemRequests.removeIf(request -> request.getOwner().getId().equals(userId));
+
         return itemRequestConverter.convert(itemRequests);
+    }
+
+    @Override
+    public ItemRequestGetResponse getRequest(Long userId, Long requestId) {
+        if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
+        if(!itemRequestRepository.existsById(requestId)) throw new NotFoundException("Wrong request id");
+        return itemRequestConverter.convertToGetResponse(itemRequestRepository.findById(requestId).orElseThrow(javax.validation.ValidationException::new));
     }
 
 

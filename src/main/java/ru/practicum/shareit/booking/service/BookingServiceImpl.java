@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.BookingRepository;
@@ -106,6 +108,24 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<BookingResponse> getOwnerBookingsHub(Long userId, String state, Long from, Long size) {
+        if (from != null || size != null) {
+            return getOwnerBookingsWithPageable(userId, state, from, size);
+        } else {
+            return getOwnerBookings(userId, state);
+        }
+    }
+
+    @Override
+    public List<BookingResponse> getUserBookingsHub(Long userId, String state, Long from, Long size) {
+        if (from != null || size != null) {
+            return getUserBookingsWithPageable(userId, state, from, size);
+        } else {
+            return getUserBookings(userId, state);
+        }
+    }
+
+    @Override
     public List<BookingResponse> getOwnerBookings(Long userId, String stateStr) {
         State state = strToState(stateStr);
         log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
@@ -130,6 +150,73 @@ public class BookingServiceImpl implements BookingService {
             case FUTURE:
                 return converter.convert(bookingRepository
                         .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
+            default:
+                return null;
+        }
+    }
+
+
+    @Override
+    public List<BookingResponse> getUserBookingsWithPageable(Long userId, String stateStr, Long from, Long size) {
+        validatePageParams(from, size);
+        State state = strToState(stateStr);
+        log.info("getUserBookings, userId = {}, state = {}", userId, state);
+        checkUserExists(userId);
+        Pageable pageable = PageRequest.of(from.intValue(), size.intValue());
+
+        switch (state) {
+            case ALL:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdOrderByStartDesc(userId, pageable));
+            case PAST:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
+            case WAITING:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable));
+            case REJECTED:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable));
+            case CURRENT:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
+                                LocalDateTime.now(), LocalDateTime.now(), pageable));
+            case FUTURE:
+                return converter.convert(bookingRepository
+                        .findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public List<BookingResponse> getOwnerBookingsWithPageable(Long userId, String stateStr, Long from, Long size) {
+        validatePageParams(from, size);
+        State state = strToState(stateStr);
+        log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
+        checkUserExists(userId);
+        Pageable pageable = PageRequest.of(from.intValue(), size.intValue());
+
+        switch (state) {
+            case ALL:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdOrderByStartDesc(userId, pageable));
+            case PAST:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
+            case CURRENT:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
+                                LocalDateTime.now(), LocalDateTime.now(), pageable));
+            case WAITING:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStatus(userId, Status.WAITING, pageable));
+            case REJECTED:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStatus(userId, Status.REJECTED, pageable));
+            case FUTURE:
+                return converter.convert(bookingRepository
+                        .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             default:
                 return null;
         }
@@ -181,6 +268,12 @@ public class BookingServiceImpl implements BookingService {
     private void checkOwnerNotBookingUser(Booking booking, Long userId) {
         if (booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotFoundException("You cannot be both the owner and the creator of a booking.");
+        }
+    }
+
+    private void validatePageParams(Long from, Long size) {
+        if (from == null || size == null || from < 0 || size <= 0) {
+            throw new IllegalArgumentException("Invalid pagination parameters");
         }
     }
 }

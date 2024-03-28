@@ -14,4 +14,6 @@ public interface ItemRequestService {
     List<ItemRequestGetResponse> get(Long userId);
 
     List<ItemRequestGetResponse> get(Long userId, Long from, Long size);
+
+    ItemRequestGetResponse getRequest(Long userId, Long requestId);
 }

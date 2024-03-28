@@ -34,4 +34,9 @@ public class ItemRequestController {
         return service.get(userId, from, size);
     }
 
+    @GetMapping("/{requestId}")
+    ItemRequestGetResponse getRequest(@RequestHeader(xSharerUserId) Long userId, @PathVariable Long requestId){
+        return service.getRequest(userId,requestId);
+    }
+
 }
