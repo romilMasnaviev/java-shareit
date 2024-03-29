@@ -41,7 +41,7 @@ public class BookingController {
                                                  @RequestHeader(xSharerUserId) Long userId,
                                                  @RequestParam(required = false, name = "from") Long from,
                                                  @RequestParam(required = false, name = "size") Long size) {
-        return bookingService.getUserBookingsHub(userId, state, from, size);
+        return bookingService.getUserBookings(userId, state, from, size);
     }
 
     @GetMapping("/owner")

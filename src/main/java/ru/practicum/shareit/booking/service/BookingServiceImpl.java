@@ -78,86 +78,41 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getOwnerBookingsHub(Long userId, String state, Long from, Long size) {
-        if (from != null || size != null) {
-            return getOwnerBookingsWithPageable(userId, state, from, size);
-        } else {
-            return getOwnerBookings(userId, state);
-        }
-    }
-
-    @Override
-    public List<BookingResponse> getUserBookingsHub(Long userId, String state, Long from, Long size) {
-        if (from != null || size != null) {
-            return getUserBookingsWithPageable(userId, state, from, size);
-        } else {
-            return getUserBookings(userId, state);
-        }
-    }
-
-    private List<BookingResponse> getUserBookings(Long userId, String stateStr) {
-        State state = strToState(stateStr);
-        log.info("getUserBookings, userId = {}, state = {}", userId, state);
-        checkUserExists(userId);
-        switch (state) {
-            case ALL:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdOrderByStartDesc(userId));
-            case PAST:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now()));
-            case WAITING:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING));
-            case REJECTED:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED));
-            case CURRENT:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
-                                LocalDateTime.now(), LocalDateTime.now()));
-            case FUTURE:
-                return converter.convert(bookingRepository
-                        .findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
-            default:
-                return null;
-        }
-    }
-
-    private List<BookingResponse> getOwnerBookings(Long userId, String stateStr) {
+    public List<BookingResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
+        Pageable pageable = createPageable(from, size);
         State state = strToState(stateStr);
         log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
         checkUserExists(userId);
         switch (state) {
             case ALL:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdOrderByStartDesc(userId));
+                        .findByItem_Owner_IdOrderByStartDesc(userId, pageable));
             case PAST:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now()));
+                        .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             case CURRENT:
                 return converter.convert(bookingRepository
                         .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
-                                LocalDateTime.now(), LocalDateTime.now()));
+                                LocalDateTime.now(), LocalDateTime.now(), pageable));
             case WAITING:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStatus(userId, Status.WAITING));
+                        .findByItem_Owner_IdAndStatus(userId, Status.WAITING, pageable));
             case REJECTED:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStatus(userId, Status.REJECTED));
+                        .findByItem_Owner_IdAndStatus(userId, Status.REJECTED, pageable));
             case FUTURE:
                 return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now()));
+                        .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             default:
                 return null;
         }
     }
 
-    private List<BookingResponse> getUserBookingsWithPageable(Long userId, String stateStr, Long from, Long size) {
-        validatePageParams(from, size);
+    @Override
+    public List<BookingResponse> getUserBookings(Long userId, String stateStr, Long from, Long size) {
+        Pageable pageable = createPageable(from, size);
         State state = strToState(stateStr);
         checkUserExists(userId);
-        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
         switch (state) {
             case ALL:
                 log.info(bookingRepository
@@ -180,39 +135,6 @@ public class BookingServiceImpl implements BookingService {
             case FUTURE:
                 return converter.convert(bookingRepository
                         .findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
-            default:
-                return null;
-        }
-    }
-
-    private List<BookingResponse> getOwnerBookingsWithPageable(Long userId, String stateStr, Long from, Long size) {
-
-        validatePageParams(from, size);
-        State state = strToState(stateStr);
-        log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
-        checkUserExists(userId);
-        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
-
-        switch (state) {
-            case ALL:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdOrderByStartDesc(userId, pageable));
-            case PAST:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
-            case CURRENT:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
-                                LocalDateTime.now(), LocalDateTime.now(), pageable));
-            case WAITING:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStatus(userId, Status.WAITING, pageable));
-            case REJECTED:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStatus(userId, Status.REJECTED, pageable));
-            case FUTURE:
-                return converter.convert(bookingRepository
-                        .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             default:
                 return null;
         }
@@ -267,9 +189,13 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void validatePageParams(Long from, Long size) {
-        if (from == null || size == null || from < 0 || size <= 0) {
-            throw new ValidationException("Invalid pagination parameters");
+    private Pageable createPageable(Long from, Long size) {
+        if (from == null || size == null) {
+            return Pageable.unpaged();
+        } else if (from < 0 || size < 1) {
+            throw new ValidationException("Wrong parameters from, size");
+        } else {
+            return PageRequest.of((int) (from / size), size.intValue());
         }
     }
 }

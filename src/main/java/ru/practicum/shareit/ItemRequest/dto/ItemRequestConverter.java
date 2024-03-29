@@ -2,11 +2,9 @@ package ru.practicum.shareit.ItemRequest.dto;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ItemRequestConverter {

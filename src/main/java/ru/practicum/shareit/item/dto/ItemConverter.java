@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
@@ -15,7 +14,5 @@ public interface ItemConverter {
     Item convert(ItemUpdateRequest request);
 
     List<ItemResponse> convert(List<Item> items);
-
-    List<ItemGetItemRequest> convertToItemRequestList(List<Item> items);
 
 }
