@@ -183,8 +183,8 @@ public class BookingServiceImpl implements BookingService {
         return userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User not found"));
     }
 
-    private Item getItem(Long userId) {
-        return itemRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("Item not found"));
+    private Item getItem(Long itemId) {
+        return itemRepository.findById(itemId).orElseThrow(() -> new NoSuchElementException("Item not found"));
     }
 
     private void checkUserPermissionForBooking(Booking booking, Long userId) {

@@ -19,7 +19,8 @@ public class ItemController {
     private final CommentService commentService;
 
     @PostMapping()
-    ItemResponse create(@RequestHeader(xSharerUserId) Long userId, @RequestBody ItemCreateRequest request) {
+    ItemResponse create(@RequestHeader(xSharerUserId) Long userId,
+                        @RequestBody ItemCreateRequest request) {
         return itemService.create(request, userId);
     }
 
@@ -31,7 +32,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    ItemResponse get(@PathVariable Long itemId, @RequestHeader(xSharerUserId) Long userId) {
+    ItemResponse get(@PathVariable Long itemId,
+                     @RequestHeader(xSharerUserId) Long userId) {
         return itemService.get(itemId, userId);
     }
 
@@ -43,15 +45,16 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    List<ItemResponse> search(@RequestParam String text,
+    List<ItemResponse> search(@RequestParam String str,
                               @RequestParam(required = false, name = "from") Long from,
                               @RequestParam(required = false, name = "size") Long size) {
-        return itemService.search(text, from, size);
+        return itemService.search(str, from, size);
     }
 
     @PostMapping("/{itemId}/comment")
     CommentResponse createComment(@RequestHeader(xSharerUserId) Long userId,
-                                  @PathVariable Long itemId, @RequestBody CommentCreateRequest request) {
+                                  @PathVariable Long itemId,
+                                  @RequestBody CommentCreateRequest request) {
         return commentService.create(userId, itemId, request);
     }
 

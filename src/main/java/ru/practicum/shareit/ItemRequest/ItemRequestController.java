@@ -36,7 +36,8 @@ public class ItemRequestController {
     }
 
     @GetMapping("/{requestId}")
-    ItemRequestResponse getRequest(@RequestHeader(xSharerUserId) Long userId, @PathVariable Long requestId) {
+    ItemRequestResponse getRequest(@RequestHeader(xSharerUserId) Long userId,
+                                   @PathVariable Long requestId) {
         return service.getRequest(userId, requestId);
     }
 
