@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.ItemRequest.dao.ItemRequestRepository;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestConverter;
@@ -16,8 +15,6 @@ import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
-
-import ru.practicum.shareit.item.dto.ItemConverter;
 import ru.practicum.shareit.item.dto.ItemGetItemRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
@@ -37,7 +34,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
 
     private final ItemRequestConverter itemRequestConverter;
-    private final ItemConverter itemConverter;
 
     @Override
     public ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId) {
@@ -54,35 +50,77 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestGetResponse> get(Long userId) {
-        log.info("Get Users List ItemRequests , user id {}", userId);
+        log.info("Get Users List ItemRequests, user id {}", userId);
         if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
-        List<ItemRequestGetResponse> getResponseList = itemRequestConverter.convert(itemRequestRepository.findAllByOwner_IdOrderByCreatedDesc(userId));
-        getResponseList.forEach(response -> {
-            List<ItemGetItemRequest> items = response.getItems();
-            items.forEach(item -> item.setRequestId(1L));
-        });
-        return getResponseList;
+
+        // Получаем ItemRequest (со списком вещей)
+        List<ItemRequest> itemRequests = itemRequestRepository.findAllByOwner_IdOrderByCreatedDesc(userId);
+
+        // Конвертация ItemRequest в ItemRequestGetResponse
+        List<ItemRequestGetResponse> responseList = new ArrayList<>();
+        for (ItemRequest itemRequest : itemRequests) {
+            ItemRequestGetResponse response = convertToResponse(itemRequest);
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
     @Override
     public List<ItemRequestGetResponse> get(Long userId, Long from, Long size) {
-        log.info("Get All Users List ItemRequests , user id {}, from {}, size {}", userId, from, size);
+        log.info("Get All Users List ItemRequests, user id {}, from {}, size {}", userId, from, size);
         if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
         if (from == null || size == null) return new ArrayList<>();
-        if (from < 0 || size < 1) throw new ValidationException("Incorrect data ( from or size)");
+        if (from < 0 || size < 1) throw new ValidationException("Incorrect data (from or size)");
+
         Pageable pageable = PageRequest.of(0, size.intValue());
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByIdGreaterThanOrderByCreatedDesc(from, pageable);
         itemRequests.removeIf(request -> request.getOwner().getId().equals(userId));
 
-        return itemRequestConverter.convert(itemRequests);
+        // Конвертация списка ItemRequest в список ItemRequestGetResponse
+        List<ItemRequestGetResponse> responseList = new ArrayList<>();
+        for (ItemRequest itemRequest : itemRequests) {
+            ItemRequestGetResponse response = convertToResponse(itemRequest);
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
     @Override
     public ItemRequestGetResponse getRequest(Long userId, Long requestId) {
         if (!userRepository.existsById(userId)) throw new NotFoundException("Wrong user id");
-        if(!itemRequestRepository.existsById(requestId)) throw new NotFoundException("Wrong request id");
-        return itemRequestConverter.convertToGetResponse(itemRequestRepository.findById(requestId).orElseThrow(javax.validation.ValidationException::new));
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Wrong request id"));
+
+        // Конвертация ItemRequest в ItemRequestGetResponse
+        return convertToResponse(itemRequest);
     }
 
+
+
+    private ItemRequestGetResponse convertToResponse(ItemRequest itemRequest) {
+        ItemRequestGetResponse response = new ItemRequestGetResponse();
+        response.setId(itemRequest.getId());
+        response.setDescription(itemRequest.getDescription());
+        response.setCreated(itemRequest.getCreated());
+        List<ItemGetItemRequest> itemResponses = new ArrayList<>();
+        for (Item item : itemRequest.getItems()) {
+            ItemGetItemRequest itemResponse = convertToResponse(item);
+            itemResponses.add(itemResponse);
+        }
+        response.setItems(itemResponses);
+        return response;
+    }
+
+    private ItemGetItemRequest convertToResponse(Item item) {
+        ItemGetItemRequest response = new ItemGetItemRequest();
+        response.setId(item.getId());
+        response.setName(item.getName());
+        response.setDescription(item.getDescription());
+        response.setAvailable(item.getAvailable());
+        response.setRequestId(item.getRequest().getId());
+        return response;
+    }
 
 }
