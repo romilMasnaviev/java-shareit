@@ -60,22 +60,21 @@ public class ItemServiceImpl implements ItemService {
         log.info("Creating item {}", request);
         Item item = itemConverter.convert(request);
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
         item.setOwner(owner);
         Optional<Long> requestId = Optional.ofNullable(request.getRequestId());
         requestId.ifPresent(id -> item.setRequest(itemRequestRepository.findById(id)
-                .orElseThrow(() -> new ValidationException("Request not found"))));
+                .orElseThrow(() -> new ValidationException("Request with ID " + id + " not found"))));
         ItemResponse response = itemConverter.convert(itemRepository.save(item));
         requestId.ifPresent(response::setRequestId);
         return response;
     }
 
-
     @Override
     public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
         log.info("Updating item {} with owner id {}", request, ownerId);
         Item newItem = itemConverter.convert(request);
-        Item oldItem = itemRepository.getReferenceById(itemId);
+        Item oldItem = get(itemId);
         copy(newItem, oldItem);
         checkItsItemOwner(ownerId, oldItem);
         return itemConverter.convert(itemRepository.save(oldItem));
@@ -84,8 +83,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse get(Long itemId, Long userId) {
         log.info("Getting item with id {}, user id {}", itemId, userId);
-        ItemResponse response = itemConverter.convert(itemRepository.findById(itemId)
-                .orElseThrow(EntityNotFoundException::new));
+        ItemResponse response = itemConverter.convert(get(itemId));
         if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
             response.setLastBooking(bookingConverter.convert(
                     bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
@@ -98,20 +96,29 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponse> getAllHub(Long ownerId, Long from, Long size) {
-        if (from != null && size != null) {
-            return getAllWithPagination(ownerId, from, size);
-        } else {
-            return getAll(ownerId);
-        }
-    }
-
-    private List<ItemResponse> getAllWithPagination(Long ownerId, Long from, Long size) {
+    public List<ItemResponse> getAll(Long ownerId, Long from, Long size) {
+        Pageable pageable = createPageable(from, size);
         log.info("Getting items with pagination for user with id {}", ownerId);
-        validatePageParams(from, size);
-        Pageable pageable = PageRequest.of((int) (from / size), size.intValue());
         List<Item> items = itemRepository.getItemsByOwnerId(ownerId, pageable);
         return getItemResponses(items);
+    }
+
+    @Override
+    public List<ItemResponse> search(String str, Long from, Long size) {
+        log.info("Searching items by keyword {}", str);
+        Pageable pageable = createPageable(from, size);
+        Page<Item> itemPage = searchAvailableItemsByStr(str, pageable);
+        return itemPage.map(itemConverter::convert).getContent();
+    }
+
+    private Pageable createPageable(Long from, Long size) {
+        if (from == null || size == null) {
+            return Pageable.unpaged();
+        } else if (from < 0 || size < 1) {
+            throw new ru.practicum.shareit.handler.ValidationException("Invalid pagination parameters");
+        } else {
+            return PageRequest.of((int) (from / size), size.intValue());
+        }
     }
 
     private List<ItemResponse> getItemResponses(List<Item> items) {
@@ -128,19 +135,10 @@ public class ItemServiceImpl implements ItemService {
         return itemResponses;
     }
 
-
-    private List<ItemResponse> getAll(Long ownerId) {
-        log.info("Getting all items for user with id {}", ownerId);
-        List<Item> items = itemRepository.getItemsByOwnerId(ownerId);
-        return getItemResponses(items);
-    }
-
-    @Override
-    public List<ItemResponse> search(String str, Long from, Long size) {
-        log.info("Searching items by keyword {}", str);
-        Pageable pageable = createPageable(from, size);
-        Page<Item> itemPage = searchAvailableItemsByStr(str, pageable);
-        return itemPage.map(itemConverter::convert).getContent();
+    private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
+        if (!item.getOwner().getId().equals(ownerId)) {
+            throw new NotFoundException("Cannot update item through a different user");
+        }
     }
 
     private Page<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
@@ -151,29 +149,14 @@ public class ItemServiceImpl implements ItemService {
                 str, pageable);
     }
 
-    private Pageable createPageable(Long from, Long size) {
-        if (from == null || size == null) {
-            return Pageable.unpaged();
-        }
-        return PageRequest.of(from.intValue(), size.intValue());
-    }
-
-    private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
-        if (!item.getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("Cannot update item through a different user");
-        }
-    }
-
     private void checkRejectedNextBooking(ItemResponse response) {
         if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
             response.setNextBooking(null);
         }
     }
 
-    private void validatePageParams(Long from, Long size) {
-        if (from == null || size == null || from < 0 || size <= 0) {
-            throw new ru.practicum.shareit.handler.ValidationException("Invalid pagination parameters");
-        }
+    private Item get(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Item with ID " + itemId + " not found"));
     }
-
 }

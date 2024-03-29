@@ -39,7 +39,7 @@ public class ItemController {
     List<ItemResponse> getAll(@RequestHeader(xSharerUserId) Long userId,
                               @RequestParam(required = false, name = "from") Long from,
                               @RequestParam(required = false, name = "size") Long size) {
-        return itemService.getAllHub(userId, from, size);
+        return itemService.getAll(userId, from, size);
     }
 
     @GetMapping("/search")

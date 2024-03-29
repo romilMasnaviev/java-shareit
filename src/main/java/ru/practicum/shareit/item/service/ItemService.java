@@ -16,5 +16,5 @@ public interface ItemService {
 
     List<ItemResponse> search(String str,Long from, Long size);
 
-    List<ItemResponse> getAllHub(Long ownerId, Long from, Long size);
+    List<ItemResponse> getAll(Long ownerId, Long from, Long size);
 }
