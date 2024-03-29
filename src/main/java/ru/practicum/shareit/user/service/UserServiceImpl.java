@@ -34,10 +34,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse get(Long id) {
-        log.info("Retrieving user with ID: {}", id);
-        checkUserExistsAndThrowIfNotFound(id);
-        return userConverter.convert(userRepository.getReferenceById(id));
+    public UserResponse get(Long userId) {
+        log.info("Retrieving user with ID: {}", userId);
+        checkUserExistsAndThrowIfNotFound(userId);
+        return userConverter.convert(userRepository.getReferenceById(userId));
     }
 
     @Override

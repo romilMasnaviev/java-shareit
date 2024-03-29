@@ -43,8 +43,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse create(BookingCreateRequest request, Long itemId, Long userId) {
+        log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", request, itemId, userId);
         Booking booking = converter.convert(request);
-        log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", booking, itemId, userId);
         checkTime(booking);
 
         Item item = getItem(itemId);
@@ -61,6 +61,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
         log.info("Approving booking. Booking ID: {}, User ID: {}, Approval: {}", bookingId, userId, isApproved);
+        userService.checkUserExistsAndThrowIfNotFound(userId);
         Booking booking = getBooking(bookingId);
         checkItsOwner(booking, userId);
         if (isApproved) {
@@ -118,8 +119,8 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponse> getUserBookings(Long userId, String stateStr, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
         log.info("Fetching user bookings. User ID: {}, State: {}", userId, state);
+        userService.checkUserExistsAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
                 log.info(bookingRepository

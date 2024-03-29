@@ -10,11 +10,11 @@ import java.util.List;
 public interface UserService {
     UserResponse create(@Valid UserCreateRequest request);
 
-    UserResponse get(Long id);
+    UserResponse get(Long userId);
 
-    UserResponse update(UserUpdateRequest request, Long id);
+    UserResponse update(UserUpdateRequest request, Long userId);
 
-    UserResponse delete(Long id);
+    UserResponse delete(Long userId);
 
     List<UserResponse> getAll();
 

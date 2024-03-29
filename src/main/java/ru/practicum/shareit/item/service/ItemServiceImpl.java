@@ -75,25 +75,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
         log.info("Updating item {} with owner id {}", request, ownerId);
         Item newItem = itemConverter.convert(request);
-        Item oldItem = get(itemId);
+        Item oldItem = getItem(itemId);
         copy(newItem, oldItem);
         checkItsItemOwner(ownerId, oldItem);
         return itemConverter.convert(itemRepository.save(oldItem));
-    }
-
-    @Override
-    public ItemResponse get(Long itemId, Long userId) {
-        log.info("Getting item with id {}, user id {}", itemId, userId);
-        ItemResponse response = itemConverter.convert(get(itemId));
-        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
-            response.setLastBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
-            response.setNextBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
-            checkRejectedNextBooking(response);
-        }
-        response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
-        return response;
     }
 
     @Override
@@ -112,18 +97,33 @@ public class ItemServiceImpl implements ItemService {
         return itemPage.map(itemConverter::convert).getContent();
     }
 
+    @Override
+    public ItemResponse get(Long itemId, Long userId) {
+        log.info("Getting item with id {}, user id {}", itemId, userId);
+        ItemResponse response = itemConverter.convert(getItem(itemId));
+        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
+            setBookingInfo(response, itemId);
+        }
+        response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
+        return response;
+    }
+
     private List<ItemResponse> getItemResponses(List<Item> items) {
         List<ItemResponse> itemResponses = new ArrayList<>();
         for (Item item : items) {
             ItemResponse response = itemConverter.convert(item);
-            response.setLastBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(),
-                            LocalDateTime.now())));
-            response.setNextBooking(bookingConverter.convert(
-                    bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())));
+            setBookingInfo(response, item.getId());
             itemResponses.add(response);
         }
         return itemResponses;
+    }
+
+    private void setBookingInfo(ItemResponse response, Long itemId) {
+        response.setLastBooking(bookingConverter.convert(
+                bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
+        response.setNextBooking(bookingConverter.convert(
+                bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
+        checkRejectedNextBooking(response);
     }
 
     private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
@@ -146,7 +146,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Item get(Long itemId) {
+    private Item getItem(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item with ID " + itemId + " not found"));
     }

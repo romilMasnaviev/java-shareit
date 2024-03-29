@@ -21,19 +21,19 @@ public class UserController {
         return userService.create(request);
     }
 
-    @PatchMapping("/{id}")
-    UserResponse update(@RequestBody UserUpdateRequest request, @PathVariable Long id) {
-        return userService.update(request, id);
+    @PatchMapping("/{userId}")
+    UserResponse update(@RequestBody UserUpdateRequest request, @PathVariable Long userId) {
+        return userService.update(request, userId);
     }
 
-    @GetMapping("/{id}")
-    UserResponse get(@PathVariable Long id) {
-        return userService.get(id);
+    @GetMapping("/{userId}")
+    UserResponse get(@PathVariable Long userId) {
+        return userService.get(userId);
     }
 
-    @DeleteMapping("/{id}")
-    UserResponse delete(@PathVariable Long id) {
-        return userService.delete(id);
+    @DeleteMapping("/{userId}")
+    UserResponse delete(@PathVariable Long userId) {
+        return userService.delete(userId);
     }
 
     @GetMapping
