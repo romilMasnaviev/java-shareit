@@ -23,7 +23,7 @@ public class BookingResponse {
     LocalDateTime end;
     Long bookerId;
 
-    public Long getBookerId() {
+    public Long getBookerId() { //TODO заменить
         return booker != null ? booker.getId() : null;
     }
 }

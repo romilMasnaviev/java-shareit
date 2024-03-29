@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse create(BookingCreateRequest request, Long itemId, Long userId) {
         Booking booking = converter.convert(request);
-        log.info("create booking = {}, itemId = {}, userId = {}", booking, itemId, userId);
+        log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", booking, itemId, userId);
         checkTime(booking);
         Item item = itemRepository.findById(itemId).orElseThrow(NoSuchElementException::new);
         checkItemAvailable(item);
@@ -53,12 +53,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
-        log.info("approve bookingId = {}, userId = {}, isApproved = {}", bookingId, userId, isApproved);
+        log.info("Approving booking. Booking ID: {}, User ID: {}, Approval: {}", bookingId, userId, isApproved);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(NoSuchElementException::new);
         checkItsOwner(booking, userId);
         if (isApproved) {
             if (booking.getStatus().equals(Status.APPROVED)) {
-                throw new ValidationException("Status can not be changed after approved");
+                throw new ValidationException("Status cannot be changed after approval");
             }
             booking.setStatus(Status.APPROVED);
         } else {
@@ -69,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse get(Long bookingId, Long userId) {
-        log.info("get booking, bookingId = {}, userId = {}", bookingId, userId);
+        log.info("Fetching booking. Booking ID: {}, User ID: {}", bookingId, userId);
         checkBookingExists(bookingId);
         checkUserExists(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(javax.validation.ValidationException::new);
@@ -81,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
         Pageable pageable = createPageable(from, size);
         State state = strToState(stateStr);
-        log.info("getOwnerBookings, userId = {}, state = {}", userId, state);
+        log.info("Fetching owner bookings. User ID: {}, State: {}", userId, state);
         checkUserExists(userId);
         switch (state) {
             case ALL:
@@ -113,6 +113,7 @@ public class BookingServiceImpl implements BookingService {
         Pageable pageable = createPageable(from, size);
         State state = strToState(stateStr);
         checkUserExists(userId);
+        log.info("Fetching user bookings. User ID: {}, State: {}", userId, state);
         switch (state) {
             case ALL:
                 log.info(bookingRepository
@@ -142,13 +143,13 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkItemAvailable(Item item) {
         if (!item.getAvailable()) {
-            throw new ValidationException("Item is not available for booking");
+            throw new ValidationException("This item is not available for booking");
         }
     }
 
     private void checkItsOwner(Booking booking, Long ownerId) {
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("The item does not belong to this user");
+            throw new NotFoundException("This item does not belong to this user");
         }
     }
 
@@ -156,24 +157,26 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStart().isBefore(LocalDateTime.now()) || booking.getEnd().isBefore(LocalDateTime.now())
                 || booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isEqual(booking.getEnd())) {
             throw new ValidationException("Error in start and/or end time parameters");
-
         }
     }
 
     private State strToState(String str) {
-        if (State.isValidValue(str)) return State.valueOf(str.toUpperCase());
-        else throw new InternalServerException("Unknown state: UNSUPPORTED_STATUS");
+        if (State.isValidValue(str)) {
+            return State.valueOf(str.toUpperCase());
+        } else {
+            throw new InternalServerException("Unknown state: " + str);
+        }
     }
 
     private void checkBookingExists(Long bookingId) {
         if (!bookingRepository.existsById(bookingId)) {
-            throw new NotFoundException("Booking doesn't exist");
+            throw new NotFoundException("Booking does not exist");
         }
     }
 
     private void checkUserExists(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User doesn't exist");
+            throw new NotFoundException("User does not exist");
         }
     }
 
@@ -193,9 +196,10 @@ public class BookingServiceImpl implements BookingService {
         if (from == null || size == null) {
             return Pageable.unpaged();
         } else if (from < 0 || size < 1) {
-            throw new ValidationException("Wrong parameters from, size");
+            throw new ValidationException("Wrong parameters from or size");
         } else {
             return PageRequest.of((int) (from / size), size.intValue());
         }
     }
+
 }

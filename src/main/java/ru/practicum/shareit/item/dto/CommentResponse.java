@@ -14,8 +14,4 @@ public class CommentResponse {
     private Item item;
     private User author;
     private LocalDateTime created;
-
-    public void setAuthorName() {
-        this.authorName = this.author.getName();
-    }
 }

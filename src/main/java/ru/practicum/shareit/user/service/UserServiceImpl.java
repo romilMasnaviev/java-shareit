@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
 import ru.practicum.shareit.user.dto.UserCreateRequest;
@@ -35,29 +36,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse get(Long id) {
         log.info("Retrieving user with ID: {}", id);
+        checkUserExists(id);
         return converter.convert(repository.getReferenceById(id));
     }
 
     @Override
     public UserResponse update(UserUpdateRequest request, Long userId) {
-        log.info("Updating user: {}", request);
-        User newUser = converter.convert(request);
-        User oldUser = repository.getReferenceById(userId);
-        if (newUser.getName() != null) {
-            oldUser.setName(newUser.getName());
+        log.info("Updating user with ID: {}, request: {}", userId, request);
+        checkUserExists(userId);
+        User updatedUser = converter.convert(request);
+        User existingUser = repository.getReferenceById(userId);
+        if (updatedUser.getName() != null) {
+            existingUser.setName(updatedUser.getName());
         }
-        if (newUser.getEmail() != null) {
-            oldUser.setEmail(newUser.getEmail());
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
         }
-        return converter.convert(repository.save(oldUser));
+        return converter.convert(repository.save(existingUser));
     }
 
     @Override
     public UserResponse delete(Long id) {
         log.info("Deleting user with ID: {}", id);
-        User user = repository.getReferenceById(id);
+        checkUserExists(id);
+        User deletedUser = repository.getReferenceById(id);
         repository.deleteById(id);
-        return converter.convert(user);
+        return converter.convert(deletedUser);
     }
 
     @Override
@@ -66,4 +70,9 @@ public class UserServiceImpl implements UserService {
         return converter.convert(repository.findAll());
     }
 
+    private void checkUserExists(Long userId) {
+        if (!repository.existsById(userId)) {
+            throw new NotFoundException("User with ID " + userId + " does not exist");
+        }
+    }
 }

@@ -11,15 +11,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CommentConverter {
 
-    @Mapping(target = "authorName", ignore = true)
+    @Mapping(target = "authorName", source = "author.name")
     CommentResponse convert(Comment comment);
-
-    @AfterMapping
-    default void setAuthorName(Comment comment, @MappingTarget CommentResponse response) {
-        if (comment != null && comment.getAuthor() != null) {
-            response.setAuthorName();
-        }
-    }
 
     List<CommentResponse> convert(List<Comment> comments);
 }
