@@ -1,6 +1,8 @@
 package ru.practicum.shareit.ItemRequest.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -23,6 +25,6 @@ public class ItemRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "id", name = "requester_id")
     private User owner;
-    @OneToMany(mappedBy = "request",fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "request", fetch = FetchType.EAGER)
     private List<Item> items;
 }

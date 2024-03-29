@@ -14,7 +14,7 @@ public interface ItemRequestConverter {
 
     ItemRequestCreateResponse convert(ItemRequest item);
 
-    List<ItemRequestGetResponse> convert(List<ItemRequest> itemRequests);
+    List<ItemRequestResponse> convert(List<ItemRequest> itemRequests);
 
-    ItemRequestGetResponse convertToGetResponse(ItemRequest request);
+    ItemRequestResponse convertToGetResponse(ItemRequest request);
 }

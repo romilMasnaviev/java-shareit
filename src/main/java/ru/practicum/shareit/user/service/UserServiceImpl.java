@@ -23,56 +23,58 @@ import java.util.List;
 @Validated
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
-    private final UserConverter converter;
+    private final UserRepository userRepository;
+    private final UserConverter userConverter;
 
     @Override
     public UserResponse create(@Valid UserCreateRequest request) {
         log.info("Creating user: {}", request);
-        User user = converter.convert(request);
-        return converter.convert(repository.save(user));
+        User user = userConverter.convert(request);
+        return userConverter.convert(userRepository.save(user));
     }
 
     @Override
     public UserResponse get(Long id) {
         log.info("Retrieving user with ID: {}", id);
-        checkUserExists(id);
-        return converter.convert(repository.getReferenceById(id));
+        checkUserExistsAndThrowIfNotFound(id);
+        return userConverter.convert(userRepository.getReferenceById(id));
     }
 
     @Override
     public UserResponse update(UserUpdateRequest request, Long userId) {
         log.info("Updating user with ID: {}, request: {}", userId, request);
-        checkUserExists(userId);
-        User updatedUser = converter.convert(request);
-        User existingUser = repository.getReferenceById(userId);
+        checkUserExistsAndThrowIfNotFound(userId);
+        User updatedUser = userConverter.convert(request);
+        User existingUser = userRepository.getReferenceById(userId);
         if (updatedUser.getName() != null) {
             existingUser.setName(updatedUser.getName());
         }
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
-        return converter.convert(repository.save(existingUser));
+        return userConverter.convert(userRepository.save(existingUser));
     }
 
     @Override
-    public UserResponse delete(Long id) {
-        log.info("Deleting user with ID: {}", id);
-        checkUserExists(id);
-        User deletedUser = repository.getReferenceById(id);
-        repository.deleteById(id);
-        return converter.convert(deletedUser);
+    public UserResponse delete(Long userId) {
+        log.info("Deleting user with ID: {}", userId);
+        checkUserExistsAndThrowIfNotFound(userId);
+        User deletedUser = userRepository.getReferenceById(userId);
+        userRepository.deleteById(userId);
+        return userConverter.convert(deletedUser);
     }
 
     @Override
     public List<UserResponse> getAll() {
         log.info("Retrieving all users");
-        return converter.convert(repository.findAll());
+        return userConverter.convert(userRepository.findAll());
     }
 
-    private void checkUserExists(Long userId) {
-        if (!repository.existsById(userId)) {
-            throw new NotFoundException("User with ID " + userId + " does not exist");
+    @Override
+    public void checkUserExistsAndThrowIfNotFound(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found with ID: " + userId);
         }
     }
+
 }

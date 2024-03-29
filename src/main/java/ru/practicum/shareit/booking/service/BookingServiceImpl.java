@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +19,13 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static ru.practicum.shareit.utility.PaginationUtil.getPageable;
 
 @Service
 @RequiredArgsConstructor
@@ -34,16 +36,21 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+
     private final BookingConverter converter;
+
+    private final UserService userService;
 
     @Override
     public BookingResponse create(BookingCreateRequest request, Long itemId, Long userId) {
         Booking booking = converter.convert(request);
         log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", booking, itemId, userId);
         checkTime(booking);
-        Item item = itemRepository.findById(itemId).orElseThrow(NoSuchElementException::new);
+
+        Item item = getItem(itemId);
         checkItemAvailable(item);
-        User user = userRepository.findById(userId).orElseThrow(NoSuchElementException::new);
+        User user = getUser(userId);
+
         booking.setBooker(user);
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
@@ -54,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
         log.info("Approving booking. Booking ID: {}, User ID: {}, Approval: {}", bookingId, userId, isApproved);
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(NoSuchElementException::new);
+        Booking booking = getBooking(bookingId);
         checkItsOwner(booking, userId);
         if (isApproved) {
             if (booking.getStatus().equals(Status.APPROVED)) {
@@ -70,19 +77,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse get(Long bookingId, Long userId) {
         log.info("Fetching booking. Booking ID: {}, User ID: {}", bookingId, userId);
-        checkBookingExists(bookingId);
-        checkUserExists(userId);
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(javax.validation.ValidationException::new);
+        userService.checkUserExistsAndThrowIfNotFound(userId);
+        Booking booking = getBooking(bookingId);
         checkUserPermissionForBooking(booking, userId);
         return converter.convert(booking);
     }
 
     @Override
     public List<BookingResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
-        Pageable pageable = createPageable(from, size);
+        Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching owner bookings. User ID: {}, State: {}", userId, state);
-        checkUserExists(userId);
+        userService.checkUserExistsAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
                 return converter.convert(bookingRepository
@@ -110,9 +116,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponse> getUserBookings(Long userId, String stateStr, Long from, Long size) {
-        Pageable pageable = createPageable(from, size);
+        Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
-        checkUserExists(userId);
+        userService.checkUserExistsAndThrowIfNotFound(userId);
         log.info("Fetching user bookings. User ID: {}, State: {}", userId, state);
         switch (state) {
             case ALL:
@@ -168,16 +174,16 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkBookingExists(Long bookingId) {
-        if (!bookingRepository.existsById(bookingId)) {
-            throw new NotFoundException("Booking does not exist");
-        }
+    private Booking getBooking(Long bookingId) {
+        return bookingRepository.findById(bookingId).orElseThrow(() -> new NoSuchElementException("Booking not found"));
     }
 
-    private void checkUserExists(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User does not exist");
-        }
+    private User getUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User not found"));
+    }
+
+    private Item getItem(Long userId) {
+        return itemRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("Item not found"));
     }
 
     private void checkUserPermissionForBooking(Booking booking, Long userId) {
@@ -189,16 +195,6 @@ public class BookingServiceImpl implements BookingService {
     private void checkOwnerNotBookingUser(Booking booking, Long userId) {
         if (booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotFoundException("You cannot be both the owner and the creator of a booking.");
-        }
-    }
-
-    private Pageable createPageable(Long from, Long size) {
-        if (from == null || size == null) {
-            return Pageable.unpaged();
-        } else if (from < 0 || size < 1) {
-            throw new ValidationException("Wrong parameters from or size");
-        } else {
-            return PageRequest.of((int) (from / size), size.intValue());
         }
     }
 

@@ -2,8 +2,8 @@ package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
+import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;

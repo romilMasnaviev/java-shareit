@@ -46,7 +46,7 @@ public class ItemController {
     List<ItemResponse> search(@RequestParam String text,
                               @RequestParam(required = false, name = "from") Long from,
                               @RequestParam(required = false, name = "size") Long size) {
-        return itemService.search(text,from,size);
+        return itemService.search(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

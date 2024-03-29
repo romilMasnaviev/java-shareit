@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static ru.practicum.shareit.utility.PaginationUtil.getPageable;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +98,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> getAll(Long ownerId, Long from, Long size) {
-        Pageable pageable = createPageable(from, size);
+        Pageable pageable = getPageable(from, size);
         log.info("Getting items with pagination for user with id {}", ownerId);
         List<Item> items = itemRepository.getItemsByOwnerId(ownerId, pageable);
         return getItemResponses(items);
@@ -106,19 +107,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemResponse> search(String str, Long from, Long size) {
         log.info("Searching items by keyword {}", str);
-        Pageable pageable = createPageable(from, size);
+        Pageable pageable = getPageable(from, size);
         Page<Item> itemPage = searchAvailableItemsByStr(str, pageable);
         return itemPage.map(itemConverter::convert).getContent();
-    }
-
-    private Pageable createPageable(Long from, Long size) {
-        if (from == null || size == null) {
-            return Pageable.unpaged();
-        } else if (from < 0 || size < 1) {
-            throw new ru.practicum.shareit.handler.ValidationException("Invalid pagination parameters");
-        } else {
-            return PageRequest.of((int) (from / size), size.intValue());
-        }
     }
 
     private List<ItemResponse> getItemResponses(List<Item> items) {

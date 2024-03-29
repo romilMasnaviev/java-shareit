@@ -1,9 +1,8 @@
 package ru.practicum.shareit.ItemRequest.service;
 
-import org.mapstruct.Mapping;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateResponse;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
+import ru.practicum.shareit.ItemRequest.dto.ItemRequestResponse;
 
 import java.util.List;
 
@@ -11,9 +10,9 @@ import java.util.List;
 public interface ItemRequestService {
     ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId);
 
-    List<ItemRequestGetResponse> get(Long userId);
+    List<ItemRequestResponse> getUserItemRequests(Long userId);
 
-    List<ItemRequestGetResponse> get(Long userId, Long from, Long size);
+    List<ItemRequestResponse> getUserItemRequests(Long userId, Long from, Long size);
 
-    ItemRequestGetResponse getRequest(Long userId, Long requestId);
+    ItemRequestResponse getRequest(Long userId, Long requestId);
 }

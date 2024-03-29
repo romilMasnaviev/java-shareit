@@ -18,5 +18,5 @@ public interface UserService {
 
     List<UserResponse> getAll();
 
-
+    void checkUserExistsAndThrowIfNotFound(Long userId);
 }

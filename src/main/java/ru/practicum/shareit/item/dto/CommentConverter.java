@@ -1,9 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import ru.practicum.shareit.item.model.Comment;
 
 import java.util.List;
