@@ -45,7 +45,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    List<ItemResponse> search(@RequestParam String str,
+    List<ItemResponse> search(@RequestParam(name = "text") String str,
                               @RequestParam(required = false, name = "from") Long from,
                               @RequestParam(required = false, name = "size") Long size) {
         return itemService.search(str, from, size);

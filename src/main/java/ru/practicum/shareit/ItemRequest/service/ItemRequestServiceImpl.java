@@ -41,7 +41,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId) {
         log.info("Creating ItemRequest {}, user id {}", request, userId);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         checkItemRequestIsCorrect(request);
         ItemRequest item = itemRequestConverter.convert(request);
         item.setOwner(userRepository.getReferenceById(userId));
@@ -51,7 +51,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestResponse> getUserItemRequests(Long userId) {
         log.info("Getting Users List of ItemRequests, user id {}", userId);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByOwner_IdOrderByCreatedDesc(userId);
         return getRequestsForUser(itemRequests);
     }
@@ -59,7 +59,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestResponse> getUserItemRequests(Long userId, Long from, Long size) {
         log.info("Getting All Users List of ItemRequests, user id {}, from {}, size {}", userId, from, size);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Pageable pageable = getPageable(from, size);
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByIdGreaterThanOrderByCreatedDesc(from, pageable);
         itemRequests.removeIf(request -> request.getOwner().getId().equals(userId));
@@ -69,7 +69,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestResponse getRequest(Long userId, Long requestId) {
         log.info("Getting request with ID {} for user with ID {}", requestId, userId);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         ItemRequest itemRequest = itemRequestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Request with ID " + requestId + " not found"));
         return mapToItemRequestResponse(itemRequest);

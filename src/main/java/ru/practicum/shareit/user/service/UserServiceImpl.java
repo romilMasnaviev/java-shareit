@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.handler.ConflictException;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
@@ -36,14 +37,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse get(Long userId) {
         log.info("Retrieving user with ID: {}", userId);
-        checkUserExistsAndThrowIfNotFound(userId);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
         return userConverter.convert(userRepository.getReferenceById(userId));
     }
 
     @Override
     public UserResponse update(UserUpdateRequest request, Long userId) {
         log.info("Updating user with ID: {}, request: {}", userId, request);
-        checkUserExistsAndThrowIfNotFound(userId);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
+        checkUserAlreadyExistsByEmail(request.getEmail(), userId);
         User updatedUser = userConverter.convert(request);
         User existingUser = userRepository.getReferenceById(userId);
         if (updatedUser.getName() != null) {
@@ -58,7 +60,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse delete(Long userId) {
         log.info("Deleting user with ID: {}", userId);
-        checkUserExistsAndThrowIfNotFound(userId);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
         User deletedUser = userRepository.getReferenceById(userId);
         userRepository.deleteById(userId);
         return userConverter.convert(deletedUser);
@@ -71,9 +73,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void checkUserExistsAndThrowIfNotFound(Long userId) {
+    public void checkUserDoesntExistAndThrowIfNotFound(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found with ID: " + userId);
+        }
+    }
+
+    private void checkUserAlreadyExistsByEmail(String email, Long userId) {
+        if (userRepository.existsByEmailAndIdNot(email, userId)) {
+            throw new ConflictException("This e-mail is already on another user");
         }
     }
 

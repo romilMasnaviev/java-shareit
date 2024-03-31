@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
         log.info("Approving booking. Booking ID: {}, User ID: {}, Approval: {}", bookingId, userId, isApproved);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Booking booking = getBooking(bookingId);
         checkItsOwner(booking, userId);
         if (isApproved) {
@@ -78,7 +78,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse get(Long bookingId, Long userId) {
         log.info("Fetching booking. Booking ID: {}, User ID: {}", bookingId, userId);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Booking booking = getBooking(bookingId);
         checkUserPermissionForBooking(booking, userId);
         return converter.convert(booking);
@@ -89,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching owner bookings. User ID: {}, State: {}", userId, state);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
                 return converter.convert(bookingRepository
@@ -120,11 +120,9 @@ public class BookingServiceImpl implements BookingService {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching user bookings. User ID: {}, State: {}", userId, state);
-        userService.checkUserExistsAndThrowIfNotFound(userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
-                log.info(bookingRepository
-                        .findByBooker_IdOrderByStartDesc(userId, pageable).toString());
                 return converter.convert(bookingRepository
                         .findByBooker_IdOrderByStartDesc(userId, pageable));
             case PAST:
