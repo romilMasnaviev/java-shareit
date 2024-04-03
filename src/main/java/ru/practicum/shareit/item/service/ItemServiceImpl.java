@@ -20,6 +20,7 @@ import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -48,6 +49,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemConverter itemConverter;
     private final CommentConverter commentConverter;
 
+    private final UserService userService;
+
     public static void copy(Item newItem, Item oldItem) {
         if (newItem.getName() != null) oldItem.setName(newItem.getName());
         if (newItem.getDescription() != null) oldItem.setDescription(newItem.getDescription());
@@ -59,6 +62,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
+        userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
         Item item = itemConverter.convert(request);
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
@@ -74,6 +78,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
         log.info("Updating item {} with owner id {}", request, ownerId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
         Item newItem = itemConverter.convert(request);
         Item oldItem = getItem(itemId);
         copy(newItem, oldItem);
@@ -85,6 +90,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemResponse> getAll(Long ownerId, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         log.info("Getting items with pagination for user with id {}", ownerId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
         List<Item> items = itemRepository.getItemsByOwnerId(ownerId, pageable);
         return getItemResponses(items);
     }
@@ -100,6 +106,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse get(Long itemId, Long userId) {
         log.info("Getting item with id {}, user id {}", itemId, userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         ItemResponse response = itemConverter.convert(getItem(itemId));
         if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
             setBookingInfo(response, itemId);
