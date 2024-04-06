@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateResponse;
+import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestResponse;
 import ru.practicum.shareit.ItemRequest.service.ItemRequestService;
 
@@ -24,19 +25,19 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    List<ItemRequestResponse> get(@RequestHeader(xSharerUserId) Long userId) {
+    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId) {
         return service.getUserItemRequests(userId);
     }
 
     @GetMapping("/all")
-    List<ItemRequestResponse> get(@RequestHeader(xSharerUserId) Long userId,
+    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId,
                                   @RequestParam(required = false, name = "from") Long from,
                                   @RequestParam(required = false, name = "size") Long size) {
         return service.getUserItemRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    ItemRequestResponse getRequest(@RequestHeader(xSharerUserId) Long userId,
+    ItemRequestGetResponse getRequest(@RequestHeader(xSharerUserId) Long userId,
                                    @PathVariable Long requestId) {
         return service.getRequest(userId, requestId);
     }
