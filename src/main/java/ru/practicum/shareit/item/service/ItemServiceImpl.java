@@ -128,9 +128,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void setBookingInfo(ItemGetResponse response, Long itemId) {
-        response.setLastBooking(bookingConverter.convert(
+        response.setLastBooking(bookingConverter.bookingConvertToBookingResponse(
                 bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
-        response.setNextBooking(bookingConverter.convert(
+        response.setNextBooking(bookingConverter.bookingConvertToBookingResponse(
                 bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
         checkRejectedNextBooking(response);
     }

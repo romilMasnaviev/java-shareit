@@ -8,12 +8,11 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 
 @Data
-public class BookingResponse {
-    private Long id;
-    private Item item;
-    private User booker;
-    private Status status;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private Long bookerId;
+public class BookingApproveResponse {
+    Long id;
+    Item item;
+    User booker;
+    Status status;
+    LocalDateTime start;
+    LocalDateTime end;
 }

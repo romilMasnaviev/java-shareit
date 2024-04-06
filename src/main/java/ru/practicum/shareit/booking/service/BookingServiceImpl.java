@@ -6,9 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.BookingRepository;
-import ru.practicum.shareit.booking.dto.BookingConverter;
-import ru.practicum.shareit.booking.dto.BookingCreateRequest;
-import ru.practicum.shareit.booking.dto.BookingResponse;
+import ru.practicum.shareit.booking.dto.*;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
@@ -42,9 +40,9 @@ public class BookingServiceImpl implements BookingService {
     private final UserService userService;
 
     @Override
-    public BookingResponse create(BookingCreateRequest request, Long itemId, Long userId) {
+    public BookingCreateResponse create(BookingCreateRequest request, Long itemId, Long userId) {
         log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", request, itemId, userId);
-        Booking booking = converter.convert(request);
+        Booking booking = converter.bookingCreateRequestConvertToBooking(request);
         checkTime(booking);
 
         Item item = getItem(itemId);
@@ -54,12 +52,13 @@ public class BookingServiceImpl implements BookingService {
         booking.setBooker(user);
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
+
         checkOwnerNotBookingUser(booking, userId);
-        return converter.convert(bookingRepository.save(booking));
+        return converter.bookingConvertToBookingCreateResponse(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingResponse approve(Long bookingId, Long userId, Boolean isApproved) {
+    public BookingApproveResponse approve(Long bookingId, Long userId, Boolean isApproved) {
         log.info("Approving booking. Booking ID: {}, User ID: {}, Approval: {}", bookingId, userId, isApproved);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Booking booking = getBooking(bookingId);
@@ -72,43 +71,43 @@ public class BookingServiceImpl implements BookingService {
         } else {
             booking.setStatus(Status.REJECTED);
         }
-        return converter.convert(bookingRepository.save(booking));
+        return converter.bookingConvertToBookingApproveResponse(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingResponse get(Long bookingId, Long userId) {
+    public BookingGetResponse get(Long bookingId, Long userId) {
         log.info("Fetching booking. Booking ID: {}, User ID: {}", bookingId, userId);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Booking booking = getBooking(bookingId);
         checkUserPermissionForBooking(booking, userId);
-        return converter.convert(booking);
+        return converter.bookingConvertToBookingGetResponse(booking);
     }
 
     @Override
-    public List<BookingResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
+    public List<BookingGetResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching owner bookings. User ID: {}, State: {}", userId, state);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdOrderByStartDesc(userId, pageable));
             case PAST:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             case CURRENT:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdAndEndAfterAndStartBeforeOrderByStartDesc(userId,
                                 LocalDateTime.now(), LocalDateTime.now(), pageable));
             case WAITING:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdAndStatus(userId, Status.WAITING, pageable));
             case REJECTED:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdAndStatus(userId, Status.REJECTED, pageable));
             case FUTURE:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             default:
                 return null;
@@ -116,30 +115,30 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getUserBookings(Long userId, String stateStr, Long from, Long size) {
+    public List<BookingGetResponse> getUserBookings(Long userId, String stateStr, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching user bookings. User ID: {}, State: {}", userId, state);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         switch (state) {
             case ALL:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdOrderByStartDesc(userId, pageable));
             case PAST:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             case WAITING:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable));
             case REJECTED:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable));
             case CURRENT:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdAndEndIsAfterAndStartBeforeOrderByStartDesc(userId,
                                 LocalDateTime.now(), LocalDateTime.now(), pageable));
             case FUTURE:
-                return converter.convert(bookingRepository
+                return converter.bookingConvertToBookingGetResponse(bookingRepository
                         .findByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable));
             default:
                 return null;

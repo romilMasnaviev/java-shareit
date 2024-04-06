@@ -16,7 +16,6 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.CommentConverter;
 import ru.practicum.shareit.item.dto.ItemConverter;
 import ru.practicum.shareit.item.dto.ItemCreateRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
