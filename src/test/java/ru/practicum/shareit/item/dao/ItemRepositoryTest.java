@@ -27,7 +27,7 @@ class ItemRepositoryTest {
     UserRepository userRepository;
 
     @BeforeEach
-    void setup(){
+    void setup() {
         userRepository.deleteAll();
         itemRepository.deleteAll();
     }
@@ -96,10 +96,10 @@ class ItemRepositoryTest {
         String searchKeyword = "Laptop";
 
         Pageable pageable = Pageable.unpaged();
-        Page<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
-        assertEquals(1, itemsPage.getTotalElements());
-        assertEquals(item1, itemsPage.getContent().get(0));
+        assertEquals(1, itemsPage.size());
+        assertEquals(item1, itemsPage.get(0));
     }
 
     @Test
@@ -113,13 +113,13 @@ class ItemRepositoryTest {
         String searchKeyword = "Phone";
 
         Pageable pageable = Pageable.unpaged();
-        Page<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
-        assertEquals(0, itemsPage.getTotalElements());
+        assertEquals(0, itemsPage.size());
     }
 
     @Test
-    public void findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase_WhenKeywordInItemName_ReturnsMatchingItems(){
+    public void findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase_WhenKeywordInItemName_ReturnsMatchingItems() {
         Item item1 = new Item();
         item1.setName("item1");
         item1.setDescription("Laptop");
@@ -135,10 +135,10 @@ class ItemRepositoryTest {
         String searchKeyword = "Desktop";
 
         Pageable pageable = Pageable.unpaged();
-        Page<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
-        assertEquals(1, itemsPage.getTotalElements());
-        assertEquals(item2, itemsPage.getContent().get(0));
+        assertEquals(1, itemsPage.size());
+        assertEquals(item2, itemsPage.get(0));
     }
 }
 

@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse update(UserUpdateRequest request, Long userId) {
         log.info("Updating user with ID: {}, request: {}", userId, request);
         checkUserDoesntExistAndThrowIfNotFound(userId);
-        checkUserAlreadyExistsByEmail(request.getEmail(), userId);
+        checkUserAlreadyExistsByEmailAndThrowIfFound(request.getEmail(), userId);
         User updatedUser = userConverter.convert(request);
         User existingUser = userRepository.getReferenceById(userId);
         if (updatedUser.getName() != null) {
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void checkUserAlreadyExistsByEmail(String email, Long userId) {
+    private void checkUserAlreadyExistsByEmailAndThrowIfFound(String email, Long userId) {
         if (userRepository.existsByEmailAndIdNot(email, userId)) {
             throw new ConflictException("This e-mail is already on another user");
         }

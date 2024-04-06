@@ -4,7 +4,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +26,10 @@ import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.utility.PaginationUtil.getPageable;
 
@@ -60,34 +61,34 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemResponse create(@Valid ItemCreateRequest request, Long ownerId) {
+    public ItemCreateResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
         userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
-        Item item = itemConverter.convert(request);
+        Item item = itemConverter.itemCreateRequestConvertToItem(request);
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
         item.setOwner(owner);
         Optional<Long> requestId = Optional.ofNullable(request.getRequestId());
         requestId.ifPresent(id -> item.setRequest(itemRequestRepository.findById(id)
                 .orElseThrow(() -> new ValidationException("Request with ID " + id + " not found"))));
-        ItemResponse response = itemConverter.convert(itemRepository.save(item));
+        ItemCreateResponse response = itemConverter.itemConvertToItemCreateResponse(itemRepository.save(item));
         requestId.ifPresent(response::setRequestId);
         return response;
     }
 
     @Override
-    public ItemResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
+    public ItemUpdateResponse update(ItemUpdateRequest request, Long ownerId, Long itemId) {
         log.info("Updating item {} with owner id {}", request, ownerId);
         userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
-        Item newItem = itemConverter.convert(request);
+        Item newItem = itemConverter.itemUpdateRequestConvertToItem(request);
         Item oldItem = getItem(itemId);
         copy(newItem, oldItem);
         checkItsItemOwner(ownerId, oldItem);
-        return itemConverter.convert(itemRepository.save(oldItem));
+        return itemConverter.itemConvertToItemUpdateResponse(itemRepository.save(oldItem));
     }
 
     @Override
-    public List<ItemResponse> getAll(Long ownerId, Long from, Long size) {
+    public List<ItemGetResponse> getAll(Long ownerId, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         log.info("Getting items with pagination for user with id {}", ownerId);
         userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
@@ -96,36 +97,37 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponse> search(String str, Long from, Long size) {
+    public List<ItemSearchResponse> search(String str, Long from, Long size) {
         log.info("Searching items by keyword {}", str);
         Pageable pageable = getPageable(from, size);
-        Page<Item> itemPage = searchAvailableItemsByStr(str, pageable);
-        return itemPage.map(itemConverter::convert).getContent();
+        List<Item> itemPage = searchAvailableItemsByStr(str, pageable);
+        return itemPage.stream().map(itemConverter::itemConvertToItemSearchResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ItemResponse get(Long itemId, Long userId) {
+    public ItemGetResponse get(Long itemId, Long userId) {
         log.info("Getting item with id {}, user id {}", itemId, userId);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
-        ItemResponse response = itemConverter.convert(getItem(itemId));
-        if (response.getOwner().getId().equals(userId) && bookingRepository.existsBookingByItemId(itemId)) {
+        ItemGetResponse response = itemConverter.itemConvertToItemGetResponse(getItem(itemId));
+
+        if (itemRepository.existsItemByOwnerIdAndId(userId, itemId) && bookingRepository.existsBookingByItemId(itemId)) {
             setBookingInfo(response, itemId);
         }
         response.setComments(commentConverter.convert(commentRepository.findByItemId(itemId)));
         return response;
     }
 
-    private List<ItemResponse> getItemResponses(List<Item> items) {
-        List<ItemResponse> itemResponses = new ArrayList<>();
+    private List<ItemGetResponse> getItemResponses(List<Item> items) {
+        List<ItemGetResponse> itemResponses = new ArrayList<>();
         for (Item item : items) {
-            ItemResponse response = itemConverter.convert(item);
+            ItemGetResponse response = itemConverter.itemConvertToItemGetResponse(item);
             setBookingInfo(response, item.getId());
             itemResponses.add(response);
         }
         return itemResponses;
     }
 
-    private void setBookingInfo(ItemResponse response, Long itemId) {
+    private void setBookingInfo(ItemGetResponse response, Long itemId) {
         response.setLastBooking(bookingConverter.convert(
                 bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
         response.setNextBooking(bookingConverter.convert(
@@ -139,15 +141,15 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Page<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
+    List<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
         if (StringUtils.isBlank(str)) {
-            return Page.empty();
+            return Collections.emptyList();
         }
         return itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(str,
                 str, pageable);
     }
 
-    private void checkRejectedNextBooking(ItemResponse response) {
+    private void checkRejectedNextBooking(ItemGetResponse response) {
         if (response.getNextBooking() != null && response.getNextBooking().getStatus().equals(Status.REJECTED)) {
             response.setNextBooking(null);
         }
