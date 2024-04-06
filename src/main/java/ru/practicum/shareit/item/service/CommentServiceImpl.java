@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -28,26 +29,25 @@ import java.time.LocalDateTime;
 @Slf4j
 public class CommentServiceImpl implements CommentService {
 
+    private final UserService userService;
+
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+
     private final CommentConverter converter;
 
     @Override
     public CommentResponse create(Long userId, Long itemId, @Valid CommentCreateRequest request) {
         log.info("Creating comment for user ID {} and item ID {}", userId, itemId);
-
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         checkBookingExists(userId, itemId, LocalDateTime.now());
 
         User author = getUser(userId);
         Item item = getItem(itemId);
 
-        Comment comment = new Comment();
-        comment.setAuthor(author);
-        comment.setItem(item);
-        comment.setCreated(LocalDateTime.now());
-        comment.setText(request.getText());
+        Comment comment = new Comment(request.getText(), item, author, LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
         return converter.convert(savedComment);

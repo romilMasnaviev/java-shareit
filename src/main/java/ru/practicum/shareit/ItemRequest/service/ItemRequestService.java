@@ -3,7 +3,6 @@ package ru.practicum.shareit.ItemRequest.service;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateResponse;
 import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestResponse;
 
 import java.util.List;
 

@@ -12,7 +12,7 @@ public interface ItemService {
 
     ItemGetResponse get(Long itemId, Long userId);
 
-    List<ItemSearchResponse> search(String str, Long from, Long size);
+    List<ItemSearchResponse> search(Long userId, String str, Long from, Long size);
 
     List<ItemGetResponse> getAll(Long ownerId, Long from, Long size);
 }

@@ -5,8 +5,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import ru.practicum.shareit.ItemRequest.model.ItemRequest;
-import ru.practicum.shareit.booking.dto.BookingResponse;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.ItemGetItemResponse;
 import ru.practicum.shareit.item.model.Item;
 

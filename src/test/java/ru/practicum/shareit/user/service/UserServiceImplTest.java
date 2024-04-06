@@ -71,15 +71,15 @@ class UserServiceImplTest {
         expectedResponse.setName(user.getName());
         expectedResponse.setEmail(user.getEmail());
 
-        when(userConverter.convert(request)).thenReturn(user);
+        when(userConverter.userCreateRequestConvertToUser(request)).thenReturn(user);
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(userConverter.convert(user)).thenReturn(expectedResponse);
+        when(userConverter.userConvertToUserResponse(user)).thenReturn(expectedResponse);
 
         UserResponse actualResponse = userService.create(request);
 
-        verify(userConverter).convert(request);
+        verify(userConverter).userCreateRequestConvertToUser(request);
         verify(userRepository).save(user);
-        verify(userConverter).convert(user);
+        verify(userConverter).userConvertToUserResponse(user);
         assertEquals(expectedResponse, actualResponse);
     }
 
@@ -105,7 +105,7 @@ class UserServiceImplTest {
         expectedResponse.setId(userId);
         expectedResponse.setName(user.getName());
         expectedResponse.setEmail(user.getEmail());
-        when(userConverter.convert(user)).thenReturn(expectedResponse);
+        when(userConverter.userConvertToUserResponse(user)).thenReturn(expectedResponse);
 
         UserResponse actualResponse = userService.get(userId);
 
@@ -143,7 +143,7 @@ class UserServiceImplTest {
         updatedUser.setName(request.getName());
         updatedUser.setEmail(request.getEmail());
 
-        when(userConverter.convert(request)).thenReturn(updatedUser);
+        when(userConverter.userUpdateRequestConvertToUser(request)).thenReturn(updatedUser);
 
         User savedUser = new User();
         savedUser.setId(userId);
@@ -157,7 +157,7 @@ class UserServiceImplTest {
         expectedResponse.setName(request.getName());
         expectedResponse.setEmail(request.getEmail());
 
-        when(userConverter.convert(savedUser)).thenReturn(expectedResponse);
+        when(userConverter.userConvertToUserResponse(savedUser)).thenReturn(expectedResponse);
 
         UserResponse actualResponse = userService.update(request, userId);
 
@@ -169,8 +169,8 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, times(1)).getReferenceById(userId);
         verify(userRepository, times(1)).save(existingUser);
-        verify(userConverter, times(1)).convert(request);
-        verify(userConverter, times(1)).convert(savedUser);
+        verify(userConverter, times(1)).userUpdateRequestConvertToUser(request);
+        verify(userConverter, times(1)).userConvertToUserResponse(savedUser);
     }
 
     @Test
@@ -191,7 +191,7 @@ class UserServiceImplTest {
         deletedUserResponse.setName(existingUser.getName());
         deletedUserResponse.setId(userId);
 
-        when(userConverter.convert(existingUser)).thenReturn(deletedUserResponse);
+        when(userConverter.userConvertToUserResponse(existingUser)).thenReturn(deletedUserResponse);
         doNothing().when(userRepository).deleteById(userId);
 
 
@@ -204,7 +204,7 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, times(1)).getReferenceById(userId);
         verify(userRepository, times(1)).deleteById(userId);
-        verify(userConverter, times(1)).convert(existingUser);
+        verify(userConverter, times(1)).userConvertToUserResponse(existingUser);
     }
 
     @Test
@@ -238,7 +238,7 @@ class UserServiceImplTest {
 
         List<UserResponse> userResponseList = getUserResponses(user1, user2);
 
-        when(userConverter.convert(userList)).thenReturn(userResponseList);
+        when(userConverter.userConvertToUserResponse(userList)).thenReturn(userResponseList);
 
         List<UserResponse> actualResponseList = userService.getAll();
 
@@ -250,7 +250,7 @@ class UserServiceImplTest {
     @Test
     void testGetAll_ReturnsEmptyListWhenNoUsers() {
         when(userRepository.findAll()).thenReturn(new ArrayList<>());
-        when(userConverter.convert(new ArrayList<>())).thenReturn(new ArrayList<>());
+        when(userConverter.userConvertToUserResponse(new ArrayList<>())).thenReturn(new ArrayList<>());
 
         List<UserResponse> actualResponseList = userService.getAll();
 

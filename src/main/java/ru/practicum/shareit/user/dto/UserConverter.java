@@ -7,12 +7,13 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserConverter {
-    UserResponse convert(User user);
 
-    User convert(UserCreateRequest request);
+    User userCreateRequestConvertToUser(UserCreateRequest request);
 
-    User convert(UserUpdateRequest request);
+    User userUpdateRequestConvertToUser(UserUpdateRequest request);
 
-    List<UserResponse> convert(List<User> users);
+    UserResponse userConvertToUserResponse(User user);
+
+    List<UserResponse> userConvertToUserResponse(List<User> users);
 
 }

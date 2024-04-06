@@ -30,15 +30,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse create(@Valid UserCreateRequest request) {
         log.info("Creating user: {}", request);
-        User user = userConverter.convert(request);
-        return userConverter.convert(userRepository.save(user));
+        User user = userConverter.userCreateRequestConvertToUser(request);
+        return userConverter.userConvertToUserResponse(userRepository.save(user));
     }
 
     @Override
     public UserResponse get(Long userId) {
         log.info("Retrieving user with ID: {}", userId);
         checkUserDoesntExistAndThrowIfNotFound(userId);
-        return userConverter.convert(userRepository.getReferenceById(userId));
+        return userConverter.userConvertToUserResponse(userRepository.getReferenceById(userId));
     }
 
     @Override
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user with ID: {}, request: {}", userId, request);
         checkUserDoesntExistAndThrowIfNotFound(userId);
         checkUserAlreadyExistsByEmailAndThrowIfFound(request.getEmail(), userId);
-        User updatedUser = userConverter.convert(request);
+        User updatedUser = userConverter.userUpdateRequestConvertToUser(request);
         User existingUser = userRepository.getReferenceById(userId);
         if (updatedUser.getName() != null) {
             existingUser.setName(updatedUser.getName());
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
-        return userConverter.convert(userRepository.save(existingUser));
+        return userConverter.userConvertToUserResponse(userRepository.save(existingUser));
     }
 
     @Override
@@ -63,13 +63,13 @@ public class UserServiceImpl implements UserService {
         checkUserDoesntExistAndThrowIfNotFound(userId);
         User deletedUser = userRepository.getReferenceById(userId);
         userRepository.deleteById(userId);
-        return userConverter.convert(deletedUser);
+        return userConverter.userConvertToUserResponse(deletedUser);
     }
 
     @Override
     public List<UserResponse> getAll() {
         log.info("Retrieving all users");
-        return userConverter.convert(userRepository.findAll());
+        return userConverter.userConvertToUserResponse(userRepository.findAll());
     }
 
     @Override

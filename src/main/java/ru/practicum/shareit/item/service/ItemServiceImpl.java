@@ -97,8 +97,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemSearchResponse> search(String str, Long from, Long size) {
+    public List<ItemSearchResponse> search(Long userId, String str, Long from, Long size) {
         log.info("Searching items by keyword {}", str);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Pageable pageable = getPageable(from, size);
         List<Item> itemPage = searchAvailableItemsByStr(str, pageable);
         return itemPage.stream().map(itemConverter::itemConvertToItemSearchResponse).collect(Collectors.toList());
