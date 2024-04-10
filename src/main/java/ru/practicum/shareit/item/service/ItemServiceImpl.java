@@ -63,7 +63,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemCreateResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
-        userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
         Item item = itemConverter.itemCreateRequestConvertToItem(request);
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
@@ -110,7 +109,6 @@ public class ItemServiceImpl implements ItemService {
         log.info("Getting item with id {}, user id {}", itemId, userId);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         ItemGetResponse response = itemConverter.itemConvertToItemGetResponse(getItem(itemId));
-
         if (itemRepository.existsItemByOwnerIdAndId(userId, itemId) && bookingRepository.existsBookingByItemId(itemId)) {
             setBookingInfo(response, itemId);
         }
@@ -142,7 +140,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    List<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
+    private List<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
         if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
