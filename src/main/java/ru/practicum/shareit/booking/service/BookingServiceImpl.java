@@ -42,6 +42,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingCreateResponse create(BookingCreateRequest request, Long itemId, Long userId) {
         log.info("Creating booking. Request: {}, Item ID: {}, User ID: {}", request, itemId, userId);
+        userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         Booking booking = converter.bookingCreateRequestConvertToBooking(request);
         checkTime(booking);
 
@@ -84,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingGetResponse> getOwnerBookingsHub(Long userId, String stateStr, Long from, Long size) {
+    public List<BookingGetResponse> getOwnerBookings(Long userId, String stateStr, Long from, Long size) {
         Pageable pageable = getPageable(from, size);
         State state = strToState(stateStr);
         log.info("Fetching owner bookings. User ID: {}, State: {}", userId, state);

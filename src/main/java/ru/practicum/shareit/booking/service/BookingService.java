@@ -15,7 +15,7 @@ public interface BookingService {
 
     BookingGetResponse get(Long bookingId, Long userId);
 
-    List<BookingGetResponse> getOwnerBookingsHub(Long userId, String state, Long from, Long size);
+    List<BookingGetResponse> getOwnerBookings(Long userId, String state, Long from, Long size);
 
     List<BookingGetResponse> getUserBookings(Long userId, String state, Long from, Long size);
 }

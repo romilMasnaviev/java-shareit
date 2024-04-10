@@ -50,12 +50,11 @@ class ItemServiceImplTest {
     @Mock
     private BookingRepository bookingRepository;
     @Mock
-    private BookingConverter bookingConverter;
-    @Mock
     private CommentConverter commentConverter;
     @Mock
     private CommentRepository commentRepository;
-
+    @Mock
+    private BookingConverter bookingConverter;
 
     @Test
     public void testCreate_UserDoesntExists_NotFoundException() {
@@ -71,8 +70,7 @@ class ItemServiceImplTest {
         item.setName(request.getName());
 
         when(itemConverter.itemCreateRequestConvertToItem(request)).thenReturn(item);
-        doThrow(new EntityNotFoundException("User with ID " + ownerId + " not found")).when(userRepository)
-                .findById(anyLong());
+        doThrow(new EntityNotFoundException("User with ID " + ownerId + " not found")).when(userRepository).findById(anyLong());
 
         assertThrows(EntityNotFoundException.class, () -> itemService.create(request, ownerId));
     }
@@ -285,7 +283,7 @@ class ItemServiceImplTest {
 
         ItemGetResponse response = itemService.get(itemId, userId);
 
-        verify(bookingRepository, never()).findFirstByItemIdAndStartBeforeOrderByStartDesc(anyLong(),any());
+        verify(bookingRepository, never()).findFirstByItemIdAndStartBeforeOrderByStartDesc(anyLong(), any());
         assertNull(response.getLastBooking());
         assertNull(response.getNextBooking());
         assertNotNull(response.getComments());
