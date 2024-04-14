@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -134,13 +133,13 @@ public class ItemServiceImpl implements ItemService {
         checkRejectedNextBooking(response);
     }
 
-    private void checkItsItemOwner(Long ownerId, @NonNull Item item) {
+    private void checkItsItemOwner(Long ownerId, Item item) {
         if (!item.getOwner().getId().equals(ownerId)) {
             throw new NotFoundException("Cannot update item through a different user");
         }
     }
 
-    private List<Item> searchAvailableItemsByStr(@NonNull String str, Pageable pageable) {
+    private List<Item> searchAvailableItemsByStr(String str, Pageable pageable) {
         if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
