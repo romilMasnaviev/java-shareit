@@ -15,6 +15,7 @@ import static ru.practicum.shareit.utility.ControllerConstants.xSharerUserId;
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
 public class ItemRequestController {
+
     private final ItemRequestService service;
 
     @PostMapping
