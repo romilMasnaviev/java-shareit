@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.handler.ConflictException;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
@@ -171,6 +172,28 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).save(existingUser);
         verify(userConverter, times(1)).userUpdateRequestConvertToUser(request);
         verify(userConverter, times(1)).userConvertToUserResponse(savedUser);
+    }
+
+    @Test
+    public void testUpdate_ConflictEmail_ThrowsConflictException() {
+        Long userId = 123L;
+        UserUpdateRequest request = new UserUpdateRequest();
+        request.setName("John Doe");
+        request.setEmail("john.doe@example.com");
+
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setName("John");
+        existingUser.setEmail(request.getEmail());
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.existsByEmailAndIdNot(request.getEmail(), userId)).thenReturn(true);
+
+        assertThrows(ConflictException.class, () -> userService.update(request, userId));
+
+        verify(userRepository, never()).save(existingUser);
+        verify(userConverter, never()).userUpdateRequestConvertToUser(request);
+        verify(userConverter, never()).userConvertToUserResponse(anyList());
     }
 
     @Test

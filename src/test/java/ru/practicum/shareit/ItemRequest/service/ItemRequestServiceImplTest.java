@@ -146,6 +146,4 @@ class ItemRequestServiceImplTest {
         verify(itemRequestConverter, times(1)).convertToGetResponse(itemRequest);
         assertEquals(actualResponse, expectedResponse);
     }
-
-
 }
