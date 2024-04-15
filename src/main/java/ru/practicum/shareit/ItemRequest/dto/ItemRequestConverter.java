@@ -14,9 +14,9 @@ import java.util.List;
 public interface ItemRequestConverter {
 
     @Mapping(target = "created", expression = "java(java.time.LocalDateTime.now())")
-    ItemRequest convert(ItemRequestCreateRequest request);
+    ItemRequest itemRequestCreateRequestConvertToItemRequest(ItemRequestCreateRequest request);
 
-    ItemRequestCreateResponse convert(ItemRequest item);
+    ItemRequestCreateResponse itemRequestConvertToItemRequestCreateResponse(ItemRequest item);
 
     ItemRequestGetResponse convertToGetResponse(ItemRequest item);
 

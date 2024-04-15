@@ -40,9 +40,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         log.info("Creating ItemRequest {}, user id {}", request, userId);
         userService.checkUserDoesntExistAndThrowIfNotFound(userId);
         checkItemRequestIsCorrect(request);
-        ItemRequest item = itemRequestConverter.convert(request);
+        ItemRequest item = itemRequestConverter.itemRequestCreateRequestConvertToItemRequest(request);
         item.setOwner(userRepository.getReferenceById(userId));
-        return itemRequestConverter.convert(itemRequestRepository.save(item));
+        return itemRequestConverter.itemRequestConvertToItemRequestCreateResponse(itemRequestRepository.save(item));
     }
 
     @Override

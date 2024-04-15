@@ -60,9 +60,9 @@ class ItemRequestServiceImplTest {
         expectedResponse.setDescription(itemRequest.getDescription());
 
         doNothing().when(userService).checkUserDoesntExistAndThrowIfNotFound(any());
-        when(itemRequestConverter.convert(request)).thenReturn(itemRequest);
+        when(itemRequestConverter.itemRequestCreateRequestConvertToItemRequest(request)).thenReturn(itemRequest);
         when(itemRequestRepository.save(itemRequest)).thenReturn(itemRequest);
-        when(itemRequestConverter.convert(itemRequest)).thenReturn(expectedResponse);
+        when(itemRequestConverter.itemRequestConvertToItemRequestCreateResponse(itemRequest)).thenReturn(expectedResponse);
 
         ItemRequestCreateResponse actualResponse = itemRequestService.create(request, userId);
 
