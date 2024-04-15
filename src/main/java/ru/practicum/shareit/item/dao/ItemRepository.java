@@ -14,6 +14,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                                                                                                   String name,
                                                                                                   Pageable pageable);
 
-    Boolean existsItemByOwnerIdAndId(Long ownerId, Long ItemId);
+    Boolean existsItemByOwnerIdAndId(Long ownerId, Long itemId);
 
 }

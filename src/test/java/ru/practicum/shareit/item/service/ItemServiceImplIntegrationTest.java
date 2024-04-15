@@ -35,7 +35,7 @@ class ItemServiceImplIntegrationTest {
         itemCreateRequest.setName("itemName");
         itemCreateRequest.setDescription("itemDescription");
         itemCreateRequest.setAvailable(true);
-        ItemCreateResponse ActualItemCreateResponse = itemService.create(itemCreateRequest, 1L);
+        ItemCreateResponse actualItemCreateResponse = itemService.create(itemCreateRequest, 1L);
 
         ItemCreateResponse expectedResponse = new ItemCreateResponse();
         expectedResponse.setId(1L);
@@ -43,7 +43,7 @@ class ItemServiceImplIntegrationTest {
         expectedResponse.setDescription(itemCreateRequest.getDescription());
         expectedResponse.setName(itemCreateRequest.getName());
 
-        assertEquals(expectedResponse, ActualItemCreateResponse);
+        assertEquals(expectedResponse, actualItemCreateResponse);
     }
 
     @Test
