@@ -19,43 +19,43 @@ public class ItemController {
     private final CommentService commentService;
 
     @PostMapping()
-    ItemCreateResponse create(@RequestHeader(xSharerUserId) Long userId,
-                              @RequestBody ItemCreateRequest request) {
+    public ItemCreateResponse create(@RequestHeader(xSharerUserId) Long userId,
+                                     @RequestBody ItemCreateRequest request) {
         return itemService.create(request, userId);
     }
 
     @PatchMapping("/{itemId}")
-    ItemUpdateResponse update(@RequestHeader(xSharerUserId) Long userId,
-                              @RequestBody ItemUpdateRequest request,
-                              @PathVariable Long itemId) {
+    public ItemUpdateResponse update(@RequestHeader(xSharerUserId) Long userId,
+                                     @RequestBody ItemUpdateRequest request,
+                                     @PathVariable Long itemId) {
         return itemService.update(request, userId, itemId);
     }
 
     @GetMapping("/{itemId}")
-    ItemGetResponse get(@PathVariable Long itemId,
-                        @RequestHeader(xSharerUserId) Long userId) {
+    public ItemGetResponse get(@PathVariable Long itemId,
+                               @RequestHeader(xSharerUserId) Long userId) {
         return itemService.get(itemId, userId);
     }
 
     @GetMapping()
-    List<ItemGetResponse> getAll(@RequestHeader(xSharerUserId) Long userId,
-                                 @RequestParam(required = false, name = "from") Long from,
-                                 @RequestParam(required = false, name = "size") Long size) {
+    public List<ItemGetResponse> getAll(@RequestHeader(xSharerUserId) Long userId,
+                                        @RequestParam(required = false, name = "from") Long from,
+                                        @RequestParam(required = false, name = "size") Long size) {
         return itemService.getAll(userId, from, size);
     }
 
     @GetMapping("/search")
-    List<ItemSearchResponse> search(@RequestHeader(xSharerUserId) Long userId,
-                                    @RequestParam(name = "text") String str,
-                                    @RequestParam(required = false, name = "from") Long from,
-                                    @RequestParam(required = false, name = "size") Long size) {
+    public List<ItemSearchResponse> search(@RequestHeader(xSharerUserId) Long userId,
+                                           @RequestParam(name = "text") String str,
+                                           @RequestParam(required = false, name = "from") Long from,
+                                           @RequestParam(required = false, name = "size") Long size) {
         return itemService.search(userId, str, from, size);
     }
 
     @PostMapping("/{itemId}/comment")
-    CommentResponse createComment(@RequestHeader(xSharerUserId) Long userId,
-                                  @PathVariable Long itemId,
-                                  @RequestBody CommentCreateRequest request) {
+    public CommentResponse createComment(@RequestHeader(xSharerUserId) Long userId,
+                                         @PathVariable Long itemId,
+                                         @RequestBody CommentCreateRequest request) {
         return commentService.create(userId, itemId, request);
     }
 

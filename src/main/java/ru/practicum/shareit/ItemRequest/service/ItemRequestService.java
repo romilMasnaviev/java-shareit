@@ -6,7 +6,6 @@ import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
 
 import java.util.List;
 
-
 public interface ItemRequestService {
     ItemRequestCreateResponse create(ItemRequestCreateRequest request, Long userId);
 

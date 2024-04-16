@@ -17,27 +17,27 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    UserResponse create(@RequestBody UserCreateRequest request) {
+    public UserResponse create(@RequestBody UserCreateRequest request) {
         return userService.create(request);
     }
 
     @PatchMapping("/{userId}")
-    UserResponse update(@RequestBody UserUpdateRequest request, @PathVariable Long userId) {
+    public UserResponse update(@RequestBody UserUpdateRequest request, @PathVariable Long userId) {
         return userService.update(request, userId);
     }
 
     @GetMapping("/{userId}")
-    UserResponse get(@PathVariable Long userId) {
+    public UserResponse get(@PathVariable Long userId) {
         return userService.get(userId);
     }
 
     @DeleteMapping("/{userId}")
-    UserResponse delete(@PathVariable Long userId) {
+    public UserResponse delete(@PathVariable Long userId) {
         return userService.delete(userId);
     }
 
     @GetMapping
-    List<UserResponse> getAll() {
+    public List<UserResponse> getAll() {
         return userService.getAll();
     }
 }

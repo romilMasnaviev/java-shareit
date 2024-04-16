@@ -19,26 +19,26 @@ public class ItemRequestController {
     private final ItemRequestService service;
 
     @PostMapping
-    ItemRequestCreateResponse create(@RequestHeader(xSharerUserId) Long userId,
-                                     @RequestBody(required = false) ItemRequestCreateRequest request) {
+    public ItemRequestCreateResponse create(@RequestHeader(xSharerUserId) Long userId,
+                                            @RequestBody(required = false) ItemRequestCreateRequest request) {
         return service.create(request, userId);
     }
 
     @GetMapping
-    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId) {
+    public List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId) {
         return service.getUserItemRequests(userId);
     }
 
     @GetMapping("/all")
-    List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId,
-                                     @RequestParam(required = false, name = "from") Long from,
-                                     @RequestParam(required = false, name = "size") Long size) {
+    public List<ItemRequestGetResponse> get(@RequestHeader(xSharerUserId) Long userId,
+                                            @RequestParam(required = false, name = "from") Long from,
+                                            @RequestParam(required = false, name = "size") Long size) {
         return service.getUserItemRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    ItemRequestGetResponse getRequest(@RequestHeader(xSharerUserId) Long userId,
-                                      @PathVariable Long requestId) {
+    public ItemRequestGetResponse getRequest(@RequestHeader(xSharerUserId) Long userId,
+                                             @PathVariable Long requestId) {
         return service.getRequest(userId, requestId);
     }
 

@@ -23,18 +23,18 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    BookingCreateResponse create(@RequestBody @Valid BookingCreateRequest request, @RequestHeader(xSharerUserId) Long userId) {
+    public BookingCreateResponse create(@RequestBody @Valid BookingCreateRequest request, @RequestHeader(xSharerUserId) Long userId) {
         return bookingService.create(request, request.getItemId(), userId);
     }
 
     @PatchMapping("/{bookingId}")
-    BookingApproveResponse approve(@PathVariable Long bookingId, @RequestHeader(xSharerUserId) Long userId,
-                                   @RequestParam(name = "approved") Boolean isApproved) {
+    public BookingApproveResponse approve(@PathVariable Long bookingId, @RequestHeader(xSharerUserId) Long userId,
+                                          @RequestParam(name = "approved") Boolean isApproved) {
         return bookingService.approve(bookingId, userId, isApproved);
     }
 
     @GetMapping("/{bookingId}")
-    BookingGetResponse get(@PathVariable Long bookingId, @RequestHeader(xSharerUserId) Long userId) {
+    public BookingGetResponse get(@PathVariable Long bookingId, @RequestHeader(xSharerUserId) Long userId) {
         return bookingService.get(bookingId, userId);
     }
 

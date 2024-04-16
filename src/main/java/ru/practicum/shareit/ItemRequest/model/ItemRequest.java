@@ -16,7 +16,6 @@ import java.util.List;
 @Entity
 @Table(name = "requests")
 public class ItemRequest {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,6 +24,6 @@ public class ItemRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "id", name = "requester_id")
     private User owner;
-    @OneToMany(mappedBy = "request", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "request")
     private List<Item> items;
 }

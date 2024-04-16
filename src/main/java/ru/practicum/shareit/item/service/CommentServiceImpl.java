@@ -53,7 +53,6 @@ public class CommentServiceImpl implements CommentService {
         return converter.convert(savedComment);
     }
 
-
     private void checkBookingExists(Long userId, Long itemId, LocalDateTime time) {
         if (!bookingRepository.existsBookingByBookerIdAndItemIdAndEndBefore(userId, itemId, time)) {
             String errorMessage = String.format("Booking not found for user with ID %d and item with ID %d", userId, itemId);

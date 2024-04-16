@@ -8,6 +8,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class UserUpdateRequest {
-    String name;
-    String email;
+    private String name;
+    private String email;
 }
