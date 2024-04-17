@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.handler.ConflictException;
+import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserConverter;
 import ru.practicum.shareit.user.dto.UserCreateRequest;
@@ -22,48 +24,65 @@ import java.util.List;
 @Validated
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
-    private final UserConverter converter;
+    private final UserRepository userRepository;
+    private final UserConverter userConverter;
 
     @Override
     public UserResponse create(@Valid UserCreateRequest request) {
         log.info("Creating user: {}", request);
-        User user = converter.convert(request);
-        return converter.convert(repository.save(user));
+        User user = userConverter.userCreateRequestConvertToUser(request);
+        return userConverter.userConvertToUserResponse(userRepository.save(user));
     }
 
     @Override
-    public UserResponse get(Long id) {
-        log.info("Retrieving user with ID: {}", id);
-        return converter.convert(repository.getReferenceById(id));
+    public UserResponse get(Long userId) {
+        log.info("Retrieving user with ID: {}", userId);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
+        return userConverter.userConvertToUserResponse(userRepository.getReferenceById(userId));
     }
 
     @Override
     public UserResponse update(UserUpdateRequest request, Long userId) {
-        log.info("Updating user: {}", request);
-        User newUser = converter.convert(request);
-        User oldUser = repository.getReferenceById(userId);
-        if (newUser.getName() != null) {
-            oldUser.setName(newUser.getName());
+        log.info("Updating user with ID: {}, request: {}", userId, request);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
+        checkUserAlreadyExistsByEmailAndThrowIfFound(request.getEmail(), userId);
+        User updatedUser = userConverter.userUpdateRequestConvertToUser(request);
+        User existingUser = userRepository.getReferenceById(userId);
+        if (updatedUser.getName() != null) {
+            existingUser.setName(updatedUser.getName());
         }
-        if (newUser.getEmail() != null) {
-            oldUser.setEmail(newUser.getEmail());
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
         }
-        return converter.convert(repository.save(oldUser));
+        return userConverter.userConvertToUserResponse(userRepository.save(existingUser));
     }
 
     @Override
-    public UserResponse delete(Long id) {
-        log.info("Deleting user with ID: {}", id);
-        User user = repository.getReferenceById(id);
-        repository.deleteById(id);
-        return converter.convert(user);
+    public UserResponse delete(Long userId) {
+        log.info("Deleting user with ID: {}", userId);
+        checkUserDoesntExistAndThrowIfNotFound(userId);
+        User deletedUser = userRepository.getReferenceById(userId);
+        userRepository.deleteById(userId);
+        return userConverter.userConvertToUserResponse(deletedUser);
     }
 
     @Override
     public List<UserResponse> getAll() {
         log.info("Retrieving all users");
-        return converter.convert(repository.findAll());
+        return userConverter.userConvertToUserResponse(userRepository.findAll());
+    }
+
+    @Override
+    public void checkUserDoesntExistAndThrowIfNotFound(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found with ID: " + userId);
+        }
+    }
+
+    private void checkUserAlreadyExistsByEmailAndThrowIfFound(String email, Long userId) {
+        if (userRepository.existsByEmailAndIdNot(email, userId)) {
+            throw new ConflictException("This e-mail is already on another user");
+        }
     }
 
 }

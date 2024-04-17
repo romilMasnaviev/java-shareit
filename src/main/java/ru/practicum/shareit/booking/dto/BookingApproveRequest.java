@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 import org.mapstruct.Mapper;
@@ -9,11 +10,12 @@ import javax.validation.constraints.NotNull;
 @Mapper(componentModel = "spring")
 @Getter
 @ToString
+@Data
 public class BookingApproveRequest {
     @NotNull
-    Long bookingId;
+    private Long bookingId;
     @NotNull
-    Long userId;
+    private Long userId;
     @NotNull
-    Boolean isApproved;
+    private Boolean isApproved;
 }

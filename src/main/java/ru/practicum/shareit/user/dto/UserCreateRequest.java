@@ -5,16 +5,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
 @ToString
 public class UserCreateRequest {
-    @NotBlank
-    String name;
+    private String name;
     @Email
     @NotNull
-    String email;
+    private String email;
 }
