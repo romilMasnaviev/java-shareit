@@ -63,12 +63,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemCreateResponse create(@Valid ItemCreateRequest request, Long ownerId) {
         log.info("Creating item {}", request);
         Item item = itemConverter.itemCreateRequestConvertToItem(request);
-        User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
+        User owner = userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException("User with ID " + ownerId + " not found"));
         item.setOwner(owner);
         Optional<Long> requestId = Optional.ofNullable(request.getRequestId());
-        requestId.ifPresent(id -> item.setRequest(itemRequestRepository.findById(id)
-                .orElseThrow(() -> new ValidationException("Request with ID " + id + " not found"))));
+        requestId.ifPresent(id -> item.setRequest(itemRequestRepository.findById(id).orElseThrow(() -> new ValidationException("Request with ID " + id + " not found"))));
         ItemCreateResponse response = itemConverter.itemConvertToItemCreateResponse(itemRepository.save(item));
         requestId.ifPresent(response::setRequestId);
         return response;
@@ -90,7 +88,7 @@ public class ItemServiceImpl implements ItemService {
         Pageable pageable = getPageable(from, size);
         log.info("Getting items with pagination for user with id {}", ownerId);
         userService.checkUserDoesntExistAndThrowIfNotFound(ownerId);
-        List<Item> items = itemRepository.getItemsByOwnerId(ownerId, pageable);
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(ownerId, pageable);
         return getItemResponses(items);
     }
 
@@ -126,10 +124,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void setBookingInfo(ItemGetResponse response, Long itemId) {
-        response.setLastBooking(bookingConverter.bookingConvertToBookingResponse(
-                bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
-        response.setNextBooking(bookingConverter.bookingConvertToBookingResponse(
-                bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
+        response.setLastBooking(bookingConverter.bookingConvertToBookingResponse(bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(itemId, LocalDateTime.now())));
+        response.setNextBooking(bookingConverter.bookingConvertToBookingResponse(bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())));
         checkRejectedNextBooking(response);
     }
 
@@ -143,8 +139,7 @@ public class ItemServiceImpl implements ItemService {
         if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(str,
-                str, pageable);
+        return itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(str.toUpperCase(), pageable);
     }
 
     private void checkRejectedNextBooking(ItemGetResponse response) {
@@ -154,7 +149,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Item getItem(Long itemId) {
-        return itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Item with ID " + itemId + " not found"));
+        return itemRepository.findById(itemId).orElseThrow(() -> new EntityNotFoundException("Item with ID " + itemId + " not found"));
     }
 }
