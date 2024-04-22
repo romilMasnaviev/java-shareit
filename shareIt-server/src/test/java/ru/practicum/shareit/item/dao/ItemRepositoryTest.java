@@ -31,7 +31,7 @@ class ItemRepositoryTest {
 
     @Test
     public void getItemsByOwnerId_WhenUserDoesNotExist_ReturnsEmptyList() {
-        List<Item> items = itemRepository.getItemsByOwnerId(999L, Pageable.unpaged());
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(999L, Pageable.unpaged());
 
         assertTrue(items.isEmpty());
     }
@@ -43,7 +43,7 @@ class ItemRepositoryTest {
         user.setEmail("email@mail.ru");
         userRepository.save(user);
 
-        List<Item> items = itemRepository.getItemsByOwnerId(user.getId(), Pageable.unpaged());
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(user.getId(), Pageable.unpaged());
 
         assertTrue(items.isEmpty());
     }
@@ -69,7 +69,7 @@ class ItemRepositoryTest {
         item2.setDescription("description2");
         itemRepository.save(item2);
 
-        List<Item> items = itemRepository.getItemsByOwnerId(user.getId(), Pageable.unpaged());
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(user.getId(), Pageable.unpaged());
         assertEquals(2, items.size());
         assertTrue(items.contains(item1));
         assertTrue(items.contains(item2));
@@ -93,7 +93,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Laptop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item1, itemsPage.get(0));
@@ -110,7 +110,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Phone";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
 
         assertEquals(0, itemsPage.size());
     }
@@ -132,7 +132,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Desktop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item2, itemsPage.get(0));
