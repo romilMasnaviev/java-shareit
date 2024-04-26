@@ -1,11 +1,11 @@
-package ru.practicum.shareit.ItemRequest;
+package ru.practicum.shareit.itemRequest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateResponse;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
-import ru.practicum.shareit.ItemRequest.service.ItemRequestService;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateRequest;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateResponse;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestGetResponse;
+import ru.practicum.shareit.itemRequest.service.ItemRequestService;
 
 import java.util.List;
 
