@@ -1,4 +1,4 @@
-package ru.practicum.shareit.ItemRequest.service;
+package ru.practicum.shareit.itemRequest.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.service.ItemServiceImpl;
 import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateRequest;
 import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateResponse;
 import ru.practicum.shareit.itemRequest.dto.ItemRequestGetResponse;
-import ru.practicum.shareit.itemRequest.service.ItemRequestServiceImpl;
 import ru.practicum.shareit.user.dto.UserCreateRequest;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
