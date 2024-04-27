@@ -127,4 +127,36 @@ class ItemServiceImplIntegrationTest {
         assertEquals(itemCreateRequest.getDescription(), itemGetResponse.getDescription());
         assertTrue(itemGetResponse.getAvailable());
     }
+
+    @Test
+    @DirtiesContext
+    public void testSearchItems_ValidData_ReturnItemSearchResponseList() {
+        UserCreateRequest userCreateRequest = new UserCreateRequest();
+        userCreateRequest.setEmail("email@mail.ru");
+        userCreateRequest.setName("name");
+        userService.create(userCreateRequest);
+
+        ItemCreateRequest item1 = new ItemCreateRequest();
+        item1.setName("Coffee Machine");
+        item1.setDescription("Professional coffee machine for espresso lovers");
+        item1.setAvailable(true);
+        itemService.create(item1, 1L);
+
+        ItemCreateRequest item2 = new ItemCreateRequest();
+        item2.setName("Milk Frother");
+        item2.setDescription("Handheld milk frother for cappuccino and latte");
+        item2.setAvailable(true);
+        itemService.create(item2, 1L);
+
+        ItemCreateRequest item3 = new ItemCreateRequest();
+        item3.setName("Coffee Beans");
+        item3.setDescription("Arabica coffee beans for a rich and smooth taste");
+        item3.setAvailable(true);
+        itemService.create(item3, 1L);
+
+        List<ItemSearchResponse> searchResults = itemService.search(1L, "coffee", 0L, 10L);
+
+        assertEquals(2, searchResults.size());
+        assertTrue(searchResults.stream().anyMatch(item -> item.getName().contains("Coffee") || item.getDescription().contains("Coffee")));
+    }
 }
