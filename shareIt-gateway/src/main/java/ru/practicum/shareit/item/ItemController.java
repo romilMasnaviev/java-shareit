@@ -27,7 +27,8 @@ public class ItemController {
 
     @PostMapping()
     public ResponseEntity<Object> create(@RequestHeader(xSharerUserId) Long userId,
-                                         @RequestBody ItemCreateRequest request) {
+                                         @Valid @RequestBody ItemCreateRequest request) {
+        log.info("Creating item for user {}, request={}", userId, request);
         return itemClient.createItem(request, userId);
     }
 
@@ -35,21 +36,22 @@ public class ItemController {
     public ResponseEntity<Object> update(@RequestHeader(xSharerUserId) Long userId,
                                          @RequestBody ItemUpdateRequest request,
                                          @PathVariable Long itemId) {
+        log.info("Updating item {} for user {}, request={}", itemId, userId, request);
         return itemClient.updateItem(request, userId, itemId);
     }
 
     @GetMapping("/{itemId}")
     public ResponseEntity<Object> get(@PathVariable Long itemId,
                                       @RequestHeader(xSharerUserId) Long userId) {
+        log.info("Getting item {} for user {}", itemId, userId);
         return itemClient.getItem(itemId, userId);
     }
 
     @GetMapping()
     public ResponseEntity<Object> getAll(@RequestHeader(xSharerUserId) Long userId,
-                                         @PositiveOrZero
-                                         @RequestParam(name = "from", defaultValue = "0") Long from,
-                                         @Positive
-                                         @RequestParam(name = "size", defaultValue = "10") Long size) {
+                                         @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Long from,
+                                         @Positive @RequestParam(name = "size", defaultValue = "10") Long size) {
+        log.info("Getting all items for user {} from {} with size {}", userId, from, size);
         return itemClient.getAllItems(userId, from, size);
     }
 
@@ -58,6 +60,7 @@ public class ItemController {
                                          @RequestParam(name = "text") String str,
                                          @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Long from,
                                          @Positive @RequestParam(name = "size", defaultValue = "10") Long size) {
+        log.info("Searching for items with text '{}' for user {} from {} with size {}", str, userId, from, size);
         return itemClient.search(userId, str, from, size);
     }
 
@@ -65,6 +68,7 @@ public class ItemController {
     public ResponseEntity<Object> createComment(@RequestHeader(xSharerUserId) Long userId,
                                                 @PositiveOrZero @PathVariable Long itemId,
                                                 @Valid @RequestBody CommentCreateRequest request) {
+        log.info("Creating comment for item {} by user {}, request={}", itemId, userId, request);
         return itemClient.createComment(userId, itemId, request);
     }
 }

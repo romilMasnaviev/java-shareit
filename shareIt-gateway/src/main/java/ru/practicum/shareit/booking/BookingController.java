@@ -41,6 +41,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> approve(@PathVariable Long bookingId, @RequestHeader(xSharerUserId) Long userId,
                                           @RequestParam(name = "approved") Boolean isApproved) {
+        log.info("Approving booking {}, userId={}, approved={}", bookingId, userId, isApproved);
         return bookingClient.approveBooking(bookingId, userId, isApproved);
     }
 
@@ -62,7 +63,7 @@ public class BookingController {
                                                    @Positive @RequestParam(name = "size", defaultValue = "10") Long size) {
         State state = State.from(stateParam)
                 .orElseThrow(() -> new InternalServerException("Unknown state: " + stateParam));
-        log.info("Get owner booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
+        log.info("Get owner bookings with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
         return bookingClient.getOwnerBookings(userId, state, from, size);
     }
 }

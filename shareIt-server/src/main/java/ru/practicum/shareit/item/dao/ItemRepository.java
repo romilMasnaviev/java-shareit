@@ -12,6 +12,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findAllByOwnerIdOrderById(Long ownerId, Pageable pageable);
 
+    //Нет теста для метода т.к тестовая бд на H2, а запрос написан под Postgres. Более простого способа не нашел
     @Query("FROM Item WHERE available = true AND " +
             "(TRANSLATE(description, 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя', 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ') LIKE CONCAT('%', :str, '%') OR " +
             "TRANSLATE(name, 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя', 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ') LIKE CONCAT('%', :str, '%'))")
