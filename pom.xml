@@ -18,7 +18,6 @@
     <modules>
         <module>shareIt-server</module>
         <module>shareIt-gateway</module>
-        <module>shareIt-server</module>
     </modules>
 
     <properties>
@@ -79,6 +78,14 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
         </dependency>
     </dependencies>
 
