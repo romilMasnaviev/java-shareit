@@ -139,7 +139,7 @@ public class ItemServiceImpl implements ItemService {
         if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
-        return itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(str.toUpperCase(), pageable);
+        return itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(str.toUpperCase(),str.toUpperCase(), pageable);
     }
 
     private void checkRejectedNextBooking(ItemGetResponse response) {

@@ -93,7 +93,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Laptop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item1, itemsPage.get(0));
@@ -110,7 +110,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Phone";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
 
         assertEquals(0, itemsPage.size());
     }
@@ -132,7 +132,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Desktop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.searchItemsByDescriptionOrNameIgnoreCaseContaining(searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item2, itemsPage.get(0));
