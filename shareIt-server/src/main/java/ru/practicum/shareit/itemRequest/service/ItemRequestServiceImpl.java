@@ -1,4 +1,4 @@
-package ru.practicum.shareit.ItemRequest.service;
+package ru.practicum.shareit.itemRequest.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,12 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.ItemRequest.dao.ItemRequestRepository;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestConverter;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateRequest;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestCreateResponse;
-import ru.practicum.shareit.ItemRequest.dto.ItemRequestGetResponse;
-import ru.practicum.shareit.ItemRequest.model.ItemRequest;
+import ru.practicum.shareit.itemRequest.dao.ItemRequestRepository;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestConverter;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateRequest;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateResponse;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestGetResponse;
+import ru.practicum.shareit.itemRequest.model.ItemRequest;
 import ru.practicum.shareit.handler.NotFoundException;
 import ru.practicum.shareit.handler.ValidationException;
 import ru.practicum.shareit.user.dao.UserRepository;
