@@ -18,10 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ItemRepositoryTest {
 
     @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
     UserRepository userRepository;
+    @Autowired
+    private ItemRepository itemRepository;
 
     @BeforeEach
     void setup() {
@@ -93,7 +92,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Laptop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item1, itemsPage.get(0));
@@ -110,7 +109,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Phone";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
         assertEquals(0, itemsPage.size());
     }
@@ -132,7 +131,7 @@ class ItemRepositoryTest {
         String searchKeyword = "Desktop";
 
         Pageable pageable = Pageable.unpaged();
-        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword,searchKeyword, pageable);
+        List<Item> itemsPage = itemRepository.findAllByAvailableTrueAndDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(searchKeyword, searchKeyword, pageable);
 
         assertEquals(1, itemsPage.size());
         assertEquals(item2, itemsPage.get(0));

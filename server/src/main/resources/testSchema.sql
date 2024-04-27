@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users
     id    BIGINT PRIMARY KEY AUTO_INCREMENT,
     name  VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE
-    );
+);
 
 CREATE TABLE IF NOT EXISTS requests
 (
@@ -18,19 +18,19 @@ CREATE TABLE IF NOT EXISTS requests
     requester_id BIGINT,
     created      TIMESTAMP,
     FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE
-    );
+);
 
 CREATE TABLE IF NOT EXISTS items
 (
     id          BIGINT PRIMARY KEY AUTO_INCREMENT,
     name        VARCHAR(100) NOT NULL,
     description VARCHAR(200),
-    available   BOOLEAN NOT NULL,
+    available   BOOLEAN      NOT NULL,
     owner_id    BIGINT,
     request_id  BIGINT,
     FOREIGN KEY (owner_id) REFERENCES users (id),
     FOREIGN KEY (request_id) REFERENCES requests (id)
-    );
+);
 
 CREATE TABLE IF NOT EXISTS bookings
 (
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS bookings
     status        INT,
     FOREIGN KEY (item_id) REFERENCES items (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-    );
+);
 
 CREATE TABLE IF NOT EXISTS comments
 (
@@ -53,4 +53,4 @@ CREATE TABLE IF NOT EXISTS comments
     create_time TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES items (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-    );
+);

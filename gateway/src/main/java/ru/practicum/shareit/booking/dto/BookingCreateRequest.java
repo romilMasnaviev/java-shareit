@@ -14,8 +14,10 @@ import java.time.LocalDateTime;
 @ToString
 public class BookingCreateRequest {
     private long itemId;
-    @FutureOrPresent @NotNull
+    @FutureOrPresent
+    @NotNull
     private LocalDateTime start;
-    @Future @NotNull
+    @Future
+    @NotNull
     private LocalDateTime end;
 }
