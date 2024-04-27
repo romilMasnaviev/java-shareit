@@ -1,14 +1,10 @@
-package ru.practicum.shareit.ItemRequest.dto;
+package ru.practicum.shareit.itemRequest.dto;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.item.dto.ItemGetItemResponse;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.itemRequest.dto.ItemRequestConverter;
-import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateRequest;
-import ru.practicum.shareit.itemRequest.dto.ItemRequestCreateResponse;
-import ru.practicum.shareit.itemRequest.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.itemRequest.model.ItemRequest;
 
 import java.util.List;

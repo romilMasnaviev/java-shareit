@@ -1,4 +1,4 @@
-package ru.practicum.shareit.ItemRequest.dao;
+package ru.practicum.shareit.itemRequest.dao;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,7 +6,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.itemRequest.dao.ItemRequestRepository;
 import ru.practicum.shareit.itemRequest.model.ItemRequest;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
